@@ -2,6 +2,8 @@
 
 A Perplexity-like AI search engine built with FastAPI, React, and deployed on Render. Features real-time web search with AI-powered responses using Groq LLM and Exa neural search.
 
+**🔗 Repository**: [https://github.com/ojusave/search_engine](https://github.com/ojusave/search_engine)
+
 ## Features
 
 - **AI-Powered Search**: Real-time web search with streaming AI responses

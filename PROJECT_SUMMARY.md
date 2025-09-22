@@ -1,5 +1,7 @@
 # Fast Search Engine - Project Summary
 
+**🔗 Repository**: [https://github.com/ojusave/search_engine](https://github.com/ojusave/search_engine)
+
 ## What We Built
 
 A complete **Perplexity-like AI search engine** with the following features:

@@ -1,5 +1,7 @@
 # Deployment Guide - Fast Search Engine
 
+**🔗 Repository**: [https://github.com/ojusave/search_engine](https://github.com/ojusave/search_engine)
+
 This guide provides step-by-step instructions for deploying the Fast Search Engine to Render.com.
 
 ## Quick Deploy (Blueprint Method)
