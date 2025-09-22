@@ -1,0 +1,53 @@
+# Render deployment configuration
+# This file defines all services and their connections
+
+services:
+  # Backend API (FastAPI)
+  - type: web
+    name: search-backend
+    runtime: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      # Auto-connected from Render services
+      - key: DATABASE_URL
+        fromDatabase:
+          name: search-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromDatabase:
+          name: search-keyvalue
+          property: connectionString
+      # Set these manually in Render dashboard
+      - key: GROQ_API_KEY
+        sync: false
+      - key: EXA_API_KEY
+        sync: false
+      # Auto-generated
+      - key: JWT_SECRET
+        generateValue: true
+      # Update with your frontend URL
+      - key: CORS_ORIGINS
+        value: https://search-frontend.onrender.com
+
+  # Frontend (React Static Site)
+  - type: static
+    name: search-frontend
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://search-backend.onrender.com
+
+databases:
+  # PostgreSQL - Render's managed SQL database
+  - name: search-postgres
+    databaseName: searchengine
+    user: searchuser
+    plan: starter  # Free tier: 256MB RAM, 1GB storage
+
+  # Key Value - Render's managed cache (Valkey 8.1, Redis-compatible)
+  - name: search-keyvalue
+    plan: starter  # Free tier: 25MB
+    maxmemoryPolicy: allkeys-lru  # Evict least recently used keys when full
