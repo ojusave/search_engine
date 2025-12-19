@@ -111,11 +111,82 @@ services:
 
 Then deploy from Render dashboard by selecting the repository with `render.yaml`.
 
+## Tech Stack & Architecture
+
+This project combines cutting-edge AI and search technologies to deliver fast, accurate, and well-sourced answers:
+
+### Why This Stack is Powerful
+
+**[Groq](https://groq.com/)** - Ultra-fast LLM inference
+- **Value**: Provides near-instant AI responses (often <1 second) compared to traditional LLM APIs
+- **Why it matters**: Real-time user experience without waiting for slow AI generation
+- **Technology**: Optimized inference engine with hardware acceleration
+
+**[Exa.ai](https://exa.ai/)** - Neural search API
+- **Value**: Semantic understanding of queries, not just keyword matching
+- **Why it matters**: Returns more relevant, contextually appropriate results
+- **Technology**: Neural embeddings and semantic search algorithms
+
+**[Render](https://render.com/)** - Cloud hosting platform
+- **Value**: Zero-config deployment, automatic scaling, and global CDN
+- **Why it matters**: Production-ready infrastructure without DevOps overhead
+
+### Data Flow
+
+```
+┌─────────────┐
+│   User      │
+│  Frontend   │
+└──────┬──────┘
+       │ 1. User submits query
+       ▼
+┌─────────────────┐
+│  Express Server │
+│   (Node.js)     │
+└──────┬──────────┘
+       │ 2. Forward query to Exa.ai
+       ▼
+┌─────────────────┐
+│   Exa.ai API    │ ──► Neural search across web
+│  (Web Search)   │ ──► Returns relevant sources with content
+└──────┬──────────┘
+       │ 3. Return search results
+       ▼
+┌─────────────────┐
+│  Express Server │ ──► Format results as context
+└──────┬──────────┘
+       │ 4. Send query + results to Groq
+       ▼
+┌─────────────────┐
+│   Groq API      │ ──► Ultra-fast LLM inference
+│  (LLM Engine)   │ ──► Synthesizes answer with citations
+└──────┬──────────┘
+       │ 5. Return formatted answer
+       ▼
+┌─────────────────┐
+│  Express Server  │ ──► Format response with sources
+└──────┬──────────┘
+       │ 6. Send to frontend
+       ▼
+┌─────────────┐
+│   User      │
+│  Frontend   │ ──► Display answer + clickable sources
+└─────────────┘
+```
+
+### Key Advantages
+
+1. **Speed**: Groq's optimized inference means answers appear in seconds, not minutes
+2. **Relevance**: Exa.ai's neural search finds semantically relevant content, not just keyword matches
+3. **Accuracy**: AI synthesizes information from multiple sources with proper citations
+4. **Transparency**: Every claim is linked back to its source
+5. **Scalability**: Render handles traffic spikes automatically
+
 ## How It Works
 
 1. **User Query**: User enters a search query in the frontend
-2. **Web Search**: Backend sends query to Exa.ai to get relevant web results
-3. **AI Synthesis**: Backend sends query + search results to Groq to generate an answer
+2. **Web Search**: Backend sends query to [Exa.ai](https://exa.ai/) to get relevant web results using neural search
+3. **AI Synthesis**: Backend sends query + search results to [Groq](https://groq.com/) to generate an answer with citations
 4. **Response**: Formatted answer with sources is returned to the frontend
 5. **Display**: Frontend displays the answer with clickable source links
 

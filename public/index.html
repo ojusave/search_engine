@@ -10,7 +10,7 @@
     <div class="container">
         <header>
             <h1>AI Search Assistant</h1>
-            <p class="subtitle">Built with Groq, Exa.ai , POWERED BY Render</p>
+            <p class="subtitle">Built with <a href="https://groq.com/" target="_blank" rel="noopener noreferrer">Groq</a>, <a href="https://exa.ai/" target="_blank" rel="noopener noreferrer">Exa.ai</a>, POWERED BY <a href="https://render.com/" target="_blank" rel="noopener noreferrer">Render</a></p>
         </header>
 
         <main>
@@ -26,6 +26,12 @@
                         <span class="btn-text">Search</span>
                         <span class="btn-loader" style="display: none;">Loading...</span>
                     </button>
+                </div>
+                <div class="debug-toggle-container">
+                    <label class="debug-toggle">
+                        <input type="checkbox" id="debugToggle">
+                        <span class="debug-label">Debug Mode</span>
+                    </label>
                 </div>
             </div>
 
@@ -43,6 +49,14 @@
 
             <div id="error" class="error-message" style="display: none;"></div>
         </main>
+
+        <div id="debugPanel" class="debug-panel" style="display: none;">
+            <div class="debug-panel-header">
+                <h3>Debug Console</h3>
+                <button id="closeDebugPanel" class="close-btn">×</button>
+            </div>
+            <div id="debugLogs" class="debug-logs"></div>
+        </div>
 
         <footer>
             <a href="https://github.com/ojusave/search_engine" target="_blank" rel="noopener noreferrer" class="github-link" aria-label="View on GitHub">
