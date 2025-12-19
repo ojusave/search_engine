@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Search Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Search Assistant</h1>
+            <p class="subtitle">Built with Groq, Exa.ai , POWERED BY Render</p>
+        </header>
+
+        <main>
+            <div class="search-container">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Ask anything..."
+                        autocomplete="off"
+                    >
+                    <button id="searchButton" class="search-btn">
+                        <span class="btn-text">Search</span>
+                        <span class="btn-loader" style="display: none;">Loading...</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="results" class="results-container" style="display: none;">
+                <div class="answer-section">
+                    <h2>Answer</h2>
+                    <div id="answer" class="answer-content"></div>
+                </div>
+
+                <div class="sources-section">
+                    <h2>Sources <span id="sourceCount" class="source-count"></span></h2>
+                    <div id="sources" class="sources-list"></div>
+                </div>
+            </div>
+
+            <div id="error" class="error-message" style="display: none;"></div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+
