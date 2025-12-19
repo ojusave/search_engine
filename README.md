@@ -2,6 +2,8 @@
 
 A simple, easy-to-follow AI search assistant built with Groq and Exa.ai APIs. This project demonstrates how to combine web search with AI to create an intelligent search assistant.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ojusave/search_engine)
+
 ## Features
 
 - **Web Search**: Uses Exa.ai to search the web for relevant sources
