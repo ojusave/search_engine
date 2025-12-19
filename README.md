@@ -200,12 +200,20 @@ Edit `config.js`:
 model: 'llama-3.3-70b-versatile' // Change to other Groq models
 ```
 
-Available models (check [Groq Console](https://console.groq.com/docs/models) for latest):
-- `llama-3.3-70b-versatile` (default - recommended)
-- `llama-3.1-8b-instant` (faster, smaller)
-- `mixtral-8x7b-32768`
-- `gemma-7b-it`
-- `llama-3.1-70b-versatile` (deprecated - use llama-3.3-70b-versatile instead)
+Available production models (see [Groq Models Documentation](https://console.groq.com/docs/models) for complete list):
+
+**Production Models:**
+- `llama-3.3-70b-versatile` (default - 280 t/s, best quality for complex tasks)
+- `llama-3.1-8b-instant` (560 t/s, faster and more cost-effective for simpler queries)
+- `openai/gpt-oss-120b` (500 t/s, OpenAI's open-weight model with 120B parameters)
+- `openai/gpt-oss-20b` (1000 t/s, faster OpenAI open-weight model)
+
+**Preview Models:**
+- `meta-llama/llama-4-maverick-17b-128e-instruct` (600 t/s)
+- `meta-llama/llama-4-scout-17b-16e-instruct` (750 t/s)
+- `qwen/qwen3-32b` (400 t/s)
+
+For the latest models and pricing, visit the [Groq Models Documentation](https://console.groq.com/docs/models).
 
 ### Adjust Search Results
 
