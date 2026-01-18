@@ -4,6 +4,14 @@ A [Perplexity](https://perplexity.ai/)-style AI search assistant built with [Gro
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ojusave/search_engine)
 
+## Screenshots
+
+![Main Interface](public/img/image.png)
+*Perplexity-style conversational search interface with real-time streaming responses*
+
+![Search Results](public/img/image1.png)
+*AI-generated answers with source citations and conversation history*
+
 ## Features
 
 - **Conversational Search** - Ask follow-up questions that understand context
