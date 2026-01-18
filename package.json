@@ -1,28 +1,32 @@
 {
   "name": "ai-search-assistant",
-  "version": "1.0.0",
-  "description": "A simple AI search assistant using Groq and Exa.ai APIs",
+  "version": "2.0.0",
+  "description": "A Perplexity-style AI search assistant with conversation memory using Groq, Exa.ai, and Postgres",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "db:init": "node scripts/init-db.js"
   },
   "keywords": [
     "ai",
     "groq",
     "exa",
     "search",
-    "assistant"
+    "assistant",
+    "perplexity",
+    "conversational"
   ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "dotenv": "^16.3.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "pg": "^8.11.3",
+    "uuid": "^9.0.0"
   }
 }
-

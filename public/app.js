@@ -1,371 +1,510 @@
 /**
  * Frontend JavaScript
- * Handles user interactions and API calls
+ * Perplexity-style conversational search with streaming
  */
 
-const searchInput = document.getElementById('searchInput');
-const searchButton = document.getElementById('searchButton');
-const resultsContainer = document.getElementById('results');
-const answerDiv = document.getElementById('answer');
-const sourcesDiv = document.getElementById('sources');
-const sourceCountSpan = document.getElementById('sourceCount');
-const errorDiv = document.getElementById('error');
-const debugToggle = document.getElementById('debugToggle');
-const debugPanel = document.getElementById('debugPanel');
-const debugLogs = document.getElementById('debugLogs');
-const closeDebugPanel = document.getElementById('closeDebugPanel');
+// DOM Elements
+const welcomeScreen = document.getElementById('welcomeScreen');
+const chatThread = document.getElementById('chatThread');
+const chatMessages = document.getElementById('chatMessages');
+const welcomeSearchInput = document.getElementById('welcomeSearchInput');
+const welcomeSearchButton = document.getElementById('welcomeSearchButton');
+const followupInput = document.getElementById('followupInput');
+const followupButton = document.getElementById('followupButton');
+const newChatBtn = document.getElementById('newChatBtn');
+const conversationList = document.getElementById('conversationList');
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebarToggle');
+const themeToggle = document.getElementById('themeToggle');
 
+// State
+let currentConversationId = null;
+let isLoading = false;
 let eventSource = null;
-let currentSessionId = null;
 
-// Handle search on button click
-searchButton.addEventListener('click', performSearch);
+// ============================================
+// Initialization
+// ============================================
 
-// Handle search on Enter key
-searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        performSearch();
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initRouting();
+    loadConversations();
+    setupEventListeners();
 });
 
-// Handle debug toggle
-debugToggle.addEventListener('change', (e) => {
-    if (e.target.checked) {
-        debugPanel.style.display = 'block';
-        // Ensure we can scroll to bottom when panel opens
-        setTimeout(() => {
-            scrollToBottom();
-        }, 100);
-    } else {
-        debugPanel.style.display = 'none';
-        // Close any active debug stream
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-        }
-    }
-});
+function setupEventListeners() {
+    // Welcome screen search
+    welcomeSearchButton.addEventListener('click', () => startNewSearch(welcomeSearchInput.value));
+    welcomeSearchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') startNewSearch(welcomeSearchInput.value);
+    });
 
-/**
- * Scroll debug logs to bottom
- */
-function scrollToBottom() {
-    if (debugLogs) {
-        debugLogs.scrollTop = debugLogs.scrollHeight;
+    // Follow-up search
+    followupButton.addEventListener('click', () => sendFollowup(followupInput.value));
+    followupInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendFollowup(followupInput.value);
+    });
+
+    // New chat button
+    newChatBtn.addEventListener('click', startNewConversation);
+
+    // Example chips
+    document.querySelectorAll('.example-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const query = chip.getAttribute('data-query');
+            welcomeSearchInput.value = query;
+            startNewSearch(query);
+        });
+    });
+
+    // Sidebar toggle (mobile)
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+    });
+
+    // Theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+}
+
+// ============================================
+// Theme Management
+// ============================================
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    } else if (prefersDark) {
+        document.body.setAttribute('data-theme', 'dark');
+        updateThemeIcon('dark');
     }
 }
 
-// Handle close debug panel
-closeDebugPanel.addEventListener('click', () => {
-    debugPanel.style.display = 'none';
-    debugToggle.checked = false;
-    // Close any active debug stream
-    if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-    }
-});
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
 
-/**
- * Perform the search
- */
-async function performSearch() {
-    const query = searchInput.value.trim();
-    
-    if (!query) {
-        showError('Please enter a search query');
+function updateThemeIcon(theme) {
+    const sunIcon = themeToggle.querySelector('.sun-icon');
+    const moonIcon = themeToggle.querySelector('.moon-icon');
+    if (theme === 'dark') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    }
+}
+
+// ============================================
+// Routing
+// ============================================
+
+function initRouting() {
+    // Check if we're on a conversation URL
+    const path = window.location.pathname;
+    const match = path.match(/^\/c\/([a-f0-9-]+)$/i);
+
+    if (match) {
+        const conversationId = match[1];
+        loadConversation(conversationId);
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', () => {
+        const path = window.location.pathname;
+        const match = path.match(/^\/c\/([a-f0-9-]+)$/i);
+
+        if (match) {
+            loadConversation(match[1]);
+        } else {
+            showWelcomeScreen();
+        }
+    });
+}
+
+function navigateToConversation(id) {
+    history.pushState({ conversationId: id }, '', `/c/${id}`);
+    currentConversationId = id;
+}
+
+// ============================================
+// Conversation Management
+// ============================================
+
+async function loadConversations() {
+    try {
+        const response = await fetch('/api/conversations');
+        const conversations = await response.json();
+        renderConversationList(conversations);
+    } catch (error) {
+        console.error('Failed to load conversations:', error);
+    }
+}
+
+function renderConversationList(conversations) {
+    if (conversations.length === 0) {
+        conversationList.innerHTML = '<p style="color: var(--text-muted); font-size: 0.85rem;">No recent searches</p>';
         return;
     }
 
-    // Hide previous results and errors
-    resultsContainer.style.display = 'none';
-    errorDiv.style.display = 'none';
+    conversationList.innerHTML = conversations.map(conv => `
+        <div class="conversation-item ${conv.id === currentConversationId ? 'active' : ''}"
+             data-id="${conv.id}"
+             onclick="loadConversation('${conv.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>${escapeHtml(conv.title || conv.first_query || 'New Search')}</span>
+        </div>
+    `).join('');
+}
 
-    // Show loading state
+async function loadConversation(id) {
+    try {
+        const response = await fetch(`/api/conversations/${id}`);
+
+        if (!response.ok) {
+            showWelcomeScreen();
+            return;
+        }
+
+        const conversation = await response.json();
+        currentConversationId = id;
+
+        showChatThread();
+        renderMessages(conversation.messages || []);
+        updateActiveConversation(id);
+
+        // Update URL if not already there
+        if (!window.location.pathname.includes(id)) {
+            navigateToConversation(id);
+        }
+
+    } catch (error) {
+        console.error('Failed to load conversation:', error);
+        showWelcomeScreen();
+    }
+}
+
+function startNewConversation() {
+    currentConversationId = null;
+    history.pushState({}, '', '/');
+    showWelcomeScreen();
+    welcomeSearchInput.value = '';
+    welcomeSearchInput.focus();
+}
+
+// ============================================
+// UI State
+// ============================================
+
+function showWelcomeScreen() {
+    welcomeScreen.style.display = 'flex';
+    chatThread.style.display = 'none';
+    currentConversationId = null;
+    updateActiveConversation(null);
+}
+
+function showChatThread() {
+    welcomeScreen.style.display = 'none';
+    chatThread.style.display = 'flex';
+}
+
+function updateActiveConversation(id) {
+    document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.id === id);
+    });
+}
+
+// ============================================
+// Search Functions
+// ============================================
+
+async function startNewSearch(query) {
+    if (!query || query.trim().length === 0 || isLoading) return;
+
+    // Create new conversation
+    try {
+        const response = await fetch('/api/conversations', { method: 'POST' });
+        const conversation = await response.json();
+        currentConversationId = conversation.id;
+        navigateToConversation(conversation.id);
+    } catch (error) {
+        console.error('Failed to create conversation:', error);
+        // Continue with a temporary ID
+        currentConversationId = 'temp-' + Date.now();
+    }
+
+    showChatThread();
+    chatMessages.innerHTML = '';
+    performSearch(query);
+    loadConversations(); // Refresh sidebar
+}
+
+async function sendFollowup(query) {
+    if (!query || query.trim().length === 0 || isLoading || !currentConversationId) return;
+
+    followupInput.value = '';
+    performSearch(query);
+}
+
+async function performSearch(query) {
+    if (isLoading) return;
+
+    isLoading = true;
     setLoadingState(true);
-    answerDiv.innerHTML = '<div class="loading">Searching and generating answer</div>';
-    sourcesDiv.innerHTML = '';
 
-    // Clear previous debug logs
-    if (debugToggle.checked) {
-        debugLogs.innerHTML = '';
+    // Add message container
+    const messageId = 'msg-' + Date.now();
+    const messageHtml = `
+        <div class="message" id="${messageId}">
+            <div class="message-query">
+                <div class="message-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div>
+                    <div class="query-text">${escapeHtml(query)}</div>
+                    <div class="rewritten-query" id="${messageId}-rewrite" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="message-answer">
+                <div class="answer-content" id="${messageId}-answer">
+                    <div class="loading">
+                        <span>Searching</span>
+                        <div class="loading-dots"><span></span><span></span><span></span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="message-sources" id="${messageId}-sources" style="display: none;">
+                <div class="sources-header">Sources</div>
+                <div class="sources-grid" id="${messageId}-sources-grid"></div>
+            </div>
+        </div>
+    `;
+
+    chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+    scrollToBottom();
+
+    // Close any existing event source
+    if (eventSource) {
+        eventSource.close();
     }
 
     try {
-        const isDebugMode = debugToggle.checked;
-        currentSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
-        // Set up real-time debug logging if debug mode is enabled
-        // Wait for connection to be ready before starting search
-        if (isDebugMode) {
-            await setupDebugStream(currentSessionId);
-            // Small delay to ensure connection is fully established
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        
-        const response = await fetch('/api/search', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                query: query,
-                numResults: 5,
-                debug: isDebugMode,
-                sessionId: currentSessionId
-            })
+        const streamUrl = `/api/conversations/${currentConversationId}/search/stream?q=${encodeURIComponent(query)}&numResults=5`;
+        eventSource = new EventSource(streamUrl);
+
+        let answerText = '';
+        const answerDiv = document.getElementById(`${messageId}-answer`);
+        const sourcesDiv = document.getElementById(`${messageId}-sources`);
+        const sourcesGrid = document.getElementById(`${messageId}-sources-grid`);
+        const rewriteDiv = document.getElementById(`${messageId}-rewrite`);
+
+        eventSource.addEventListener('status', (e) => {
+            const data = JSON.parse(e.data);
+            answerDiv.innerHTML = `
+                <div class="loading">
+                    <span>${data.message}</span>
+                    <div class="loading-dots"><span></span><span></span><span></span></div>
+                </div>
+            `;
         });
 
-        const data = await response.json();
+        eventSource.addEventListener('rewrite', (e) => {
+            const data = JSON.parse(e.data);
+            rewriteDiv.textContent = `Searched for: "${data.rewritten}"`;
+            rewriteDiv.style.display = 'block';
+        });
 
-        if (!response.ok) {
-            throw new Error(data.error || data.message || 'An error occurred');
-        }
+        eventSource.addEventListener('sources', (e) => {
+            const data = JSON.parse(e.data);
 
-        // Don't close stream here - let server send CLOSED message
-        // Stream will close automatically when CLOSED message is received
+            // Display sources
+            sourcesGrid.innerHTML = data.sources.map(source => `
+                <a href="${source.url}" target="_blank" class="source-card">
+                    <span class="source-card-number">${source.number}</span>
+                    <span class="source-card-title">${escapeHtml(source.title)}</span>
+                    <div class="source-card-url">${new URL(source.url).hostname}</div>
+                </a>
+            `).join('');
 
-        // Display debug logs if available (fallback for non-streaming)
-        if (isDebugMode && data.debugLogs && data.debugLogs.length > 0) {
-            // Only add if we didn't already receive them via stream
-            const existingLogs = debugLogs.querySelectorAll('.debug-log-entry').length;
-            if (existingLogs === 0) {
-                displayDebugLogs(data.debugLogs);
+            sourcesDiv.style.display = 'block';
+
+            // Clear loading, prepare for answer
+            answerDiv.innerHTML = '';
+        });
+
+        eventSource.addEventListener('chunk', (e) => {
+            const data = JSON.parse(e.data);
+            answerText += data.text;
+            answerDiv.innerHTML = formatAnswer(answerText);
+            scrollToBottom();
+        });
+
+        eventSource.addEventListener('done', (e) => {
+            eventSource.close();
+            eventSource = null;
+            isLoading = false;
+            setLoadingState(false);
+            loadConversations(); // Refresh sidebar
+            followupInput.focus();
+        });
+
+        eventSource.addEventListener('error', (e) => {
+            let errorMessage = 'An error occurred';
+            if (e.data) {
+                const data = JSON.parse(e.data);
+                errorMessage = data.message || errorMessage;
             }
-        }
 
-        // Display results
-        displayResults(data);
+            answerDiv.innerHTML = `<div class="error-message">${escapeHtml(errorMessage)}</div>`;
+
+            eventSource.close();
+            eventSource = null;
+            isLoading = false;
+            setLoadingState(false);
+        });
+
+        eventSource.onerror = () => {
+            if (eventSource && eventSource.readyState === EventSource.CLOSED) {
+                return;
+            }
+
+            answerDiv.innerHTML = `<div class="error-message">Connection lost. Please try again.</div>`;
+
+            if (eventSource) {
+                eventSource.close();
+                eventSource = null;
+            }
+            isLoading = false;
+            setLoadingState(false);
+        };
 
     } catch (error) {
         console.error('Search error:', error);
-        showError(error.message || 'Failed to perform search. Please try again.');
-        
-        // Close debug stream on error
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
-        }
-    } finally {
+        document.getElementById(`${messageId}-answer`).innerHTML =
+            `<div class="error-message">${escapeHtml(error.message)}</div>`;
+        isLoading = false;
         setLoadingState(false);
     }
 }
 
-/**
- * Set up Server-Sent Events stream for real-time debug logs
- * Returns a promise that resolves when the connection is ready
- */
-function setupDebugStream(sessionId) {
-    return new Promise((resolve, reject) => {
-        // Close existing connection if any
-        if (eventSource) {
-            eventSource.close();
-        }
-        
-        // Create new EventSource connection
-        eventSource = new EventSource(`/api/debug-stream/${sessionId}`);
-        
-        // Wait for connection to be established
-        eventSource.onopen = () => {
-            console.log('Debug stream connected');
-            resolve();
-        };
-        
-        eventSource.onmessage = (event) => {
-            try {
-                const logEntry = JSON.parse(event.data);
-                
-                // If this is the CONNECTED message, connection is ready
-                if (logEntry.step === 'CONNECTED') {
-                    resolve();
-                    return;
-                }
-                
-                addDebugLog(logEntry);
-                
-                // Close connection if we receive CLOSED message
-                if (logEntry.step === 'CLOSED') {
-                    setTimeout(() => {
-                        if (eventSource) {
-                            eventSource.close();
-                            eventSource = null;
-                        }
-                    }, 100);
-                }
-            } catch (error) {
-                console.error('Error parsing debug log:', error);
-            }
-        };
-        
-        eventSource.onerror = (error) => {
-            console.error('Debug stream error:', error);
-            // If connection fails, still proceed with search
-            resolve();
-        };
-        
-        // Timeout after 2 seconds if connection doesn't establish
-        setTimeout(() => {
-            if (eventSource && eventSource.readyState !== EventSource.OPEN) {
-                console.warn('Debug stream connection timeout');
-                resolve(); // Still proceed with search
-            }
-        }, 2000);
-    });
-}
+// ============================================
+// Render Functions
+// ============================================
 
-/**
- * Add a single debug log entry in real-time
- */
-function addDebugLog(log) {
-    const stepClass = log.step === 'ERROR' || log.step === 'GROQ_ERROR' ? 'error' : 
-                     log.step === 'COMPLETE' ? 'complete' : 
-                     log.step === 'CLOSED' ? 'closed' : 
-                     log.step === 'GROQ' ? 'groq' : 'step';
-    
-    const dataStr = log.data ? JSON.stringify(log.data, null, 2) : '';
-    
-    const logEntry = document.createElement('div');
-    logEntry.className = `debug-log-entry ${stepClass}`;
-    logEntry.innerHTML = `
-        <div class="debug-log-header">
-            <span class="debug-step">[${log.step}]</span>
-            <span class="debug-time">${new Date(log.timestamp).toLocaleTimeString()}</span>
-        </div>
-        <div class="debug-message">${escapeHtml(log.message)}</div>
-        ${dataStr ? `<pre class="debug-data">${escapeHtml(dataStr)}</pre>` : ''}
-    `;
-    
-    debugLogs.appendChild(logEntry);
-    
-    // Auto-scroll to bottom with a small delay to ensure DOM is updated
-    requestAnimationFrame(() => {
-        scrollToBottom();
-        // Also scroll the last element into view as a fallback
-        logEntry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-}
+function renderMessages(messages) {
+    if (messages.length === 0) {
+        chatMessages.innerHTML = '';
+        return;
+    }
 
-/**
- * Display search results
- */
-function displayResults(data) {
-    // Display answer
-    answerDiv.innerHTML = formatAnswer(data.answer);
+    chatMessages.innerHTML = messages.map(msg => {
+        const sources = typeof msg.sources === 'string' ? JSON.parse(msg.sources) : msg.sources;
 
-    // Display source count
-    sourceCountSpan.textContent = `(${data.sourceCount})`;
-
-    // Display sources with data attributes for citation linking
-    sourcesDiv.innerHTML = data.sources.map(source => `
-        <div class="source-item" data-source-number="${source.number}" onclick="window.open('${source.url}', '_blank')">
-            <span class="source-number">${source.number}</span>
-            <a href="${source.url}" target="_blank" class="source-title" onclick="event.stopPropagation()">
-                ${escapeHtml(source.title)}
-            </a>
-            <a href="${source.url}" target="_blank" class="source-url" onclick="event.stopPropagation()">
-                ${source.url}
-            </a>
-            ${source.snippet ? `<div class="source-snippet">${escapeHtml(source.snippet)}</div>` : ''}
-        </div>
-    `).join('');
-
-    // Show results container
-    resultsContainer.style.display = 'block';
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/**
- * Format the answer text (convert [Source X] to styled citations)
- */
-function formatAnswer(answer) {
-    // Convert [Source X] to clickable citations that scroll to sources
-    let formatted = answer.replace(
-        /\[Source (\d+)\]/g,
-        '<a href="#source-$1" class="source-citation" data-source="$1">[$1]</a>'
-    );
-    
-    // Convert line breaks to <br>
-    formatted = formatted.replace(/\n/g, '<br>');
-    
-    return formatted;
-}
-
-/**
- * Display debug logs in the debug panel
- */
-function displayDebugLogs(logs) {
-    debugLogs.innerHTML = logs.map(log => {
-        const stepClass = log.step === 'ERROR' ? 'error' : log.step === 'COMPLETE' ? 'complete' : 'step';
-        const dataStr = log.data ? JSON.stringify(log.data, null, 2) : '';
         return `
-            <div class="debug-log-entry ${stepClass}">
-                <div class="debug-log-header">
-                    <span class="debug-step">[${log.step}]</span>
-                    <span class="debug-time">${new Date(log.timestamp).toLocaleTimeString()}</span>
+            <div class="message">
+                <div class="message-query">
+                    <div class="message-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="query-text">${escapeHtml(msg.query)}</div>
+                        ${msg.rewritten_query ? `<div class="rewritten-query">Searched for: "${escapeHtml(msg.rewritten_query)}"</div>` : ''}
+                    </div>
                 </div>
-                <div class="debug-message">${escapeHtml(log.message)}</div>
-                ${dataStr ? `<pre class="debug-data">${escapeHtml(dataStr)}</pre>` : ''}
+                <div class="message-answer">
+                    <div class="answer-content">${formatAnswer(msg.answer || '')}</div>
+                </div>
+                ${sources && sources.length > 0 ? `
+                    <div class="message-sources">
+                        <div class="sources-header">Sources</div>
+                        <div class="sources-grid">
+                            ${sources.map(source => `
+                                <a href="${source.url}" target="_blank" class="source-card">
+                                    <span class="source-card-number">${source.number}</span>
+                                    <span class="source-card-title">${escapeHtml(source.title)}</span>
+                                    <div class="source-card-url">${new URL(source.url).hostname}</div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }).join('');
-    
-    // Auto-scroll to bottom
-    debugLogs.scrollTop = debugLogs.scrollHeight;
+
+    scrollToBottom();
 }
 
-// Handle citation clicks to scroll to sources
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('source-citation')) {
-        e.preventDefault();
-        const sourceNum = e.target.getAttribute('data-source');
-        const sourceElement = document.querySelector(`[data-source-number="${sourceNum}"]`);
-        if (sourceElement) {
-            sourceElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Highlight the source briefly
-            sourceElement.style.transition = 'background-color 0.3s';
-            sourceElement.style.backgroundColor = '#3d3d5c';
-            setTimeout(() => {
-                sourceElement.style.backgroundColor = '';
-            }, 2000);
+function formatAnswer(answer) {
+    if (!answer) return '';
+
+    // Convert [Source X] to clickable citations
+    let formatted = answer.replace(
+        /\[Source (\d+)\]/g,
+        '<span class="source-citation" data-source="$1">$1</span>'
+    );
+
+    // Convert line breaks
+    formatted = formatted.replace(/\n/g, '<br>');
+
+    return formatted;
+}
+
+// ============================================
+// Utility Functions
+// ============================================
+
+function setLoadingState(loading) {
+    const buttons = [welcomeSearchButton, followupButton];
+    const inputs = [welcomeSearchInput, followupInput];
+
+    buttons.forEach(btn => {
+        if (btn) btn.disabled = loading;
+    });
+
+    inputs.forEach(input => {
+        if (input) input.disabled = loading;
+    });
+
+    // Update button text
+    if (welcomeSearchButton) {
+        const btnText = welcomeSearchButton.querySelector('.btn-text');
+        const btnLoader = welcomeSearchButton.querySelector('.btn-loader');
+        if (btnText && btnLoader) {
+            btnText.style.display = loading ? 'none' : 'inline';
+            btnLoader.style.display = loading ? 'inline' : 'none';
         }
     }
-});
-
-/**
- * Show error message
- */
-function showError(message) {
-    errorDiv.textContent = message;
-    errorDiv.style.display = 'block';
-    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-/**
- * Set loading state
- */
-function setLoadingState(loading) {
-    searchInput.disabled = loading;
-    searchButton.disabled = loading;
-    
-    const btnText = searchButton.querySelector('.btn-text');
-    const btnLoader = searchButton.querySelector('.btn-loader');
-    
-    if (loading) {
-        btnText.style.display = 'none';
-        btnLoader.style.display = 'inline';
-    } else {
-        btnText.style.display = 'inline';
-        btnLoader.style.display = 'none';
-    }
+function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-/**
- * Escape HTML to prevent XSS
- */
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-
+// Make loadConversation globally accessible for onclick handlers
+window.loadConversation = loadConversation;
