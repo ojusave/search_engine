@@ -44,7 +44,7 @@ Click the "Deploy to Render" button above. The `render.yaml` file automatically 
    - `GROQ_API_KEY`
    - `EXA_API_KEY`
 
-> **Note**: Free PostgreSQL tier (1GB, 30-day expiry). For production, upgrade to a paid plan ($7/month+).
+> **Note**: Free [Render Postgres](https://render.com/docs/postgresql-refresh) tier (1GB, 30-day expiry). For production, upgrade to a paid plan ($7/month+).
 
 ## Architecture
 
@@ -138,7 +138,7 @@ sequenceDiagram
 | [`config.js`](config.js) | API configuration |
 | [`components/search.js`](components/search.js) | [Exa.ai](https://exa.ai/) integration |
 | [`components/llm.js`](components/llm.js) | [Groq](https://groq.com/) streaming and query rewriting |
-| [`components/database.js`](components/database.js) | PostgreSQL connection |
+| [`components/database.js`](components/database.js) | [PostgreSQL](https://www.postgresql.org/) / [Render Postgres](https://render.com/docs/postgresql-refresh) connection |
 | [`components/queryRewriter.js`](components/queryRewriter.js) | Context-aware query expansion |
 | [`components/responseFormatter.js`](components/responseFormatter.js) | Format final response |
 | [`public/index.html`](public/index.html) | Frontend UI with sidebar layout |
@@ -182,13 +182,22 @@ See the [Exa.ai Search API docs](https://docs.exa.ai/reference/search) for more 
 
 ## Database Setup
 
-### PostgreSQL (Recommended for Production)
+### [Render Postgres](https://render.com/docs/postgresql-refresh) (Recommended for Production)
 
-**On Render**: The database is automatically provisioned via [`render.yaml`](render.yaml) when deploying. The `DATABASE_URL` is automatically injected and the schema is created on first startup. See [Deployment](#deployment-on-render) for full details.
+[Render Postgres](https://render.com/docs/postgresql-refresh) is automatically provisioned via [`render.yaml`](render.yaml) when deploying to [Render](https://render.com/). The `DATABASE_URL` is automatically injected and the schema is created on first startup. See [Deployment](#deployment-on-render) for full details.
 
-**Local Development**:
+**Benefits of Render Postgres:**
+- Zero-configuration setup
+- Automatic backups and monitoring
+- SSL connections by default
+- Free tier available (1GB, 30-day expiry)
+- Managed service with automatic maintenance
 
-1. **Install PostgreSQL**:
+### Local Development with [PostgreSQL](https://www.postgresql.org/)
+
+For local development, you can use a local [PostgreSQL](https://www.postgresql.org/) installation:
+
+1. **Install [PostgreSQL](https://www.postgresql.org/)**:
    ```bash
    # macOS (using Homebrew)
    brew install postgresql@15
@@ -274,18 +283,18 @@ If `DATABASE_URL` is not set, the app uses in-memory storage (conversations stor
 
 ### Option 1: Using render.yaml (Recommended)
 
-The project includes a [`render.yaml`](render.yaml) blueprint that automatically provisions the web service and PostgreSQL database. Deploy from Render dashboard by selecting the repository with `render.yaml`.
+The project includes a [`render.yaml`](render.yaml) blueprint that automatically provisions the web service and [Render Postgres](https://render.com/docs/postgresql-refresh) database. Deploy from [Render Dashboard](https://dashboard.render.com/) by selecting the repository with `render.yaml`.
 
 **What gets provisioned:**
 - Web service with Node.js runtime
-- Free PostgreSQL database (1GB, 30-day expiry) - see [Database Setup](#database-setup)
+- Free [Render Postgres](https://render.com/docs/postgresql-refresh) database (1GB, 30-day expiry) - see [Database Setup](#database-setup)
 - `DATABASE_URL` environment variable (auto-injected)
 
 **You need to add:**
 - `GROQ_API_KEY` - Get from [console.groq.com](https://console.groq.com/)
 - `EXA_API_KEY` - Get from [dashboard.exa.ai](https://dashboard.exa.ai/)
 
-Add these in the Render dashboard under Environment Variables.
+Add these in the [Render Dashboard](https://dashboard.render.com/) under Environment Variables.
 
 <details>
 <summary>View render.yaml configuration</summary>
@@ -334,7 +343,7 @@ services:
 6. Add environment variables (see [Quick Start](#quick-start) for API key setup):
    - `GROQ_API_KEY`: Your Groq API key
    - `EXA_API_KEY`: Your Exa.ai API key
-   - `DATABASE_URL`: (Optional) Your PostgreSQL connection string (see [Database Setup](#database-setup))
+   - `DATABASE_URL`: (Optional) Your [PostgreSQL](https://www.postgresql.org/) / [Render Postgres](https://render.com/docs/postgresql-refresh) connection string (see [Database Setup](#database-setup))
 7. Deploy!
 
 ## API Reference
@@ -364,33 +373,6 @@ The streaming endpoints use [Server-Sent Events](https://developer.mozilla.org/e
 | `done` | `{ messageId, totalDuration }` | Stream complete |
 | `error` | `{ message }` | Error occurred |
 
-## Troubleshooting
-
-**API Key Errors**
-- See [Quick Start](#quick-start) for API key setup instructions
-- Verify API keys in `.env` (local) or Render environment variables (production)
-- Check that API keys are correctly set in [Render environment variables](https://render.com/docs/configure-environment-variables)
-
-**No Search Results**
-- Verify your [Exa.ai](https://exa.ai/) API key is valid
-- Check your [Exa.ai dashboard](https://dashboard.exa.ai/) for available credits
-- Try a different search query
-
-**Context Not Working**
-- Ensure you're in the same conversation (URL contains `/c/{id}`)
-- Check server logs for `[CONTEXT]` messages showing history count
-- Follow-up questions need pronouns or references (e.g., "Who founded it?" not "Who founded?")
-
-**Database Connection Issues**
-- See [Database Setup](#database-setup) for detailed configuration
-- Connection string format: `postgresql://user:password@host:port/database`
-- On Render: `DATABASE_URL` is auto-provided when using [`render.yaml`](render.yaml) (see [Deployment](#deployment-on-render))
-- If `DATABASE_URL` is not set, the app uses [in-memory storage](#in-memory-storage)
-
-**CORS Issues**
-- The server includes [CORS middleware](https://expressjs.com/en/resources/middleware/cors.html), so this should work out of the box
-- If issues persist, check the `cors` configuration in [`server.js`](server.js)
-
 ## Tech Stack
 
 | Technology | Purpose |
@@ -405,10 +387,3 @@ The streaming endpoints use [Server-Sent Events](https://developer.mozilla.org/e
 ## License
 
 [MIT](https://opensource.org/licenses/MIT)
-
-## Credits
-
-- [Groq](https://groq.com/) - Fast LLM inference
-- [Exa.ai](https://exa.ai/) - Neural web search API
-- [Render](https://render.com/) - Cloud hosting platform
-- [Render Postgres](https://render.com/docs/postgresql-refresh) - Managed PostgreSQL database
