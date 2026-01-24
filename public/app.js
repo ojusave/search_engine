@@ -15,6 +15,7 @@ const newChatBtn = document.getElementById('newChatBtn');
 const conversationList = document.getElementById('conversationList');
 const sidebar = document.getElementById('sidebar');
 const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebarResizeHandle = document.getElementById('sidebarResizeHandle');
 const themeToggle = document.getElementById('themeToggle');
 
 // State
@@ -28,6 +29,7 @@ let eventSource = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
+    initSidebarResize();
     initRouting();
     loadConversations();
     setupEventListeners();
@@ -65,6 +67,56 @@ function setupEventListeners() {
 
     // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
+}
+
+// ============================================
+// Sidebar Resize
+// ============================================
+
+function initSidebarResize() {
+    // Load saved width from localStorage
+    const savedWidth = localStorage.getItem('sidebarWidth');
+    if (savedWidth) {
+        document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+    }
+
+    if (!sidebarResizeHandle) return;
+
+    let isResizing = false;
+    let startX = 0;
+    let startWidth = 0;
+
+    sidebarResizeHandle.addEventListener('mousedown', (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = parseInt(window.getComputedStyle(sidebar).width, 10);
+        sidebar.style.transition = 'none';
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isResizing) return;
+
+        const width = startWidth + e.clientX - startX;
+        const minWidth = 200;
+        const maxWidth = 500;
+
+        if (width >= minWidth && width <= maxWidth) {
+            document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+            localStorage.setItem('sidebarWidth', width);
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isResizing) {
+            isResizing = false;
+            sidebar.style.transition = '';
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
 }
 
 // ============================================
