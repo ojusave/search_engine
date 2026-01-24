@@ -156,6 +156,13 @@ async function deleteConversation(id) {
 }
 
 /**
+ * Delete all conversations
+ */
+async function deleteAllConversations() {
+  await pool.query('TRUNCATE conversations CASCADE');
+}
+
+/**
  * Check if database is connected
  */
 async function isConnected() {
@@ -183,6 +190,7 @@ module.exports = {
   addMessage,
   getConversationHistory,
   deleteConversation,
+  deleteAllConversations,
   isConnected,
   close
 };

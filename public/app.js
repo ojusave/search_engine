@@ -158,13 +158,21 @@ function renderConversationList(conversations) {
 
     conversationList.innerHTML = conversations.map(conv => `
         <div class="conversation-item ${conv.id === currentConversationId ? 'active' : ''}"
-             data-id="${conv.id}"
-             onclick="loadConversation('${conv.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <span>${escapeHtml(conv.title || conv.first_query || 'New Search')}</span>
+             data-id="${conv.id}">
+            <div class="conversation-item-content" onclick="loadConversation('${conv.id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <span>${escapeHtml(conv.title || conv.first_query || 'New Search')}</span>
+            </div>
+            <button class="delete-conversation-btn" onclick="event.stopPropagation(); deleteConversation('${conv.id}')" 
+                    title="Delete conversation">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
         </div>
     `).join('');
 }
@@ -506,5 +514,61 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Make loadConversation globally accessible for onclick handlers
+// ============================================
+// Delete Functions
+// ============================================
+
+async function deleteConversation(id) {
+    if (!confirm('Are you sure you want to delete this conversation?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete conversation');
+        }
+
+        // If we deleted the current conversation, go back to welcome screen
+        if (id === currentConversationId) {
+            showWelcomeScreen();
+        }
+
+        // Reload conversation list
+        loadConversations();
+    } catch (error) {
+        console.error('Error deleting conversation:', error);
+        alert('Failed to delete conversation. Please try again.');
+    }
+}
+
+async function deleteAllConversations() {
+    if (!confirm('Are you sure you want to delete ALL conversations? This cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/conversations', { method: 'DELETE' });
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete all conversations');
+        }
+
+        // Go back to welcome screen
+        showWelcomeScreen();
+        
+        // Reload conversation list
+        loadConversations();
+        
+        alert('All conversations have been deleted.');
+    } catch (error) {
+        console.error('Error deleting all conversations:', error);
+        alert('Failed to delete all conversations. Please try again.');
+    }
+}
+
+// Make functions globally accessible for onclick handlers
 window.loadConversation = loadConversation;
+window.deleteConversation = deleteConversation;
+window.deleteAllConversations = deleteAllConversations;

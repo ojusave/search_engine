@@ -67,6 +67,14 @@ const memoryStore = {
         first_query: c.messages[0]?.query,
         created_at: c.created_at
       }));
+  },
+
+  deleteConversation(id) {
+    this.conversations.delete(id);
+  },
+
+  deleteAll() {
+    this.conversations.clear();
   }
 };
 
@@ -163,11 +171,30 @@ app.delete('/api/conversations/:id', async (req, res) => {
   try {
     if (dbConnected) {
       await db.deleteConversation(req.params.id);
+    } else {
+      memoryStore.conversations.delete(req.params.id);
     }
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting conversation:', error);
     res.status(500).json({ error: 'Failed to delete conversation' });
+  }
+});
+
+/**
+ * Delete all conversations
+ */
+app.delete('/api/conversations', async (req, res) => {
+  try {
+    if (dbConnected) {
+      await db.deleteAllConversations();
+    } else {
+      memoryStore.conversations.clear();
+    }
+    res.json({ success: true, message: 'All conversations deleted' });
+  } catch (error) {
+    console.error('Error deleting all conversations:', error);
+    res.status(500).json({ error: 'Failed to delete all conversations' });
   }
 });
 
