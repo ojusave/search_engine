@@ -16,6 +16,9 @@ const conversationList = document.getElementById('conversationList');
 const sidebar = document.getElementById('sidebar');
 const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebarResizeHandle = document.getElementById('sidebarResizeHandle');
+const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+const collapseIcon = document.getElementById('collapseIcon');
+const expandIcon = document.getElementById('expandIcon');
 const themeToggle = document.getElementById('themeToggle');
 
 // State
@@ -65,6 +68,14 @@ function setupEventListeners() {
         sidebar.classList.toggle('open');
     });
 
+    // Sidebar collapse toggle
+    if (sidebarCollapseBtn) {
+        sidebarCollapseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebarCollapse();
+        });
+    }
+
     // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
 }
@@ -74,10 +85,17 @@ function setupEventListeners() {
 // ============================================
 
 function initSidebarResize() {
-    // Load saved width from localStorage
+    // Load saved width and collapsed state from localStorage
     const savedWidth = localStorage.getItem('sidebarWidth');
-    if (savedWidth) {
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    
+    if (savedWidth && !isCollapsed) {
         document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+    }
+    
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        updateCollapseIcons(true);
     }
 
     if (!sidebarResizeHandle) return;
@@ -87,6 +105,12 @@ function initSidebarResize() {
     let startWidth = 0;
 
     sidebarResizeHandle.addEventListener('mousedown', (e) => {
+        if (sidebar.classList.contains('collapsed')) {
+            // If collapsed, expand first
+            toggleSidebarCollapse();
+            return;
+        }
+        
         isResizing = true;
         startX = e.clientX;
         startWidth = parseInt(window.getComputedStyle(sidebar).width, 10);
@@ -100,12 +124,22 @@ function initSidebarResize() {
         if (!isResizing) return;
 
         const width = startWidth + e.clientX - startX;
-        const minWidth = 200;
+        const minWidth = 0;
         const maxWidth = 500;
 
         if (width >= minWidth && width <= maxWidth) {
-            document.documentElement.style.setProperty('--sidebar-width', width + 'px');
-            localStorage.setItem('sidebarWidth', width);
+            if (width < 50) {
+                // Collapse if dragged too small
+                sidebar.classList.add('collapsed');
+                localStorage.setItem('sidebarCollapsed', 'true');
+                updateCollapseIcons(true);
+            } else {
+                sidebar.classList.remove('collapsed');
+                document.documentElement.style.setProperty('--sidebar-width', width + 'px');
+                localStorage.setItem('sidebarWidth', width);
+                localStorage.setItem('sidebarCollapsed', 'false');
+                updateCollapseIcons(false);
+            }
         }
     });
 
@@ -117,6 +151,29 @@ function initSidebarResize() {
             document.body.style.userSelect = '';
         }
     });
+}
+
+function toggleSidebarCollapse() {
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    
+    if (isCollapsed) {
+        sidebar.classList.remove('collapsed');
+        const savedWidth = localStorage.getItem('sidebarWidth') || '280';
+        document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+        localStorage.setItem('sidebarCollapsed', 'false');
+        updateCollapseIcons(false);
+    } else {
+        sidebar.classList.add('collapsed');
+        localStorage.setItem('sidebarCollapsed', 'true');
+        updateCollapseIcons(true);
+    }
+}
+
+function updateCollapseIcons(isCollapsed) {
+    if (collapseIcon && expandIcon) {
+        collapseIcon.style.display = isCollapsed ? 'none' : 'block';
+        expandIcon.style.display = isCollapsed ? 'block' : 'none';
+    }
 }
 
 // ============================================
