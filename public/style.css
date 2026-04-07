@@ -388,6 +388,51 @@ h1, h2, h3, h4, h5, h6 {
     text-align: center;
 }
 
+/* Powered-by badges */
+.powered-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.powered-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition);
+}
+
+.powered-badge:hover {
+    border-color: var(--border-hover);
+    color: var(--text-secondary);
+}
+
+.powered-badge strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.powered-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.powered-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-color);
+}
+
 .welcome-content h1 {
     font-size: 2.25rem;
     font-weight: 300;
