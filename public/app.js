@@ -556,16 +556,27 @@ function renderMessages(messages) {
 function formatAnswer(answer) {
     if (!answer) return '';
 
-    // Convert [Source X] to clickable citations
-    let formatted = answer.replace(
+    // Replace [Source X] with placeholder tokens before markdown parsing
+    let text = answer.replace(
         /\[Source (\d+)\]/g,
+        '%%SOURCE_$1%%'
+    );
+
+    // Parse markdown (marked is loaded from CDN)
+    if (typeof marked !== 'undefined') {
+        marked.setOptions({ breaks: true, gfm: true });
+        text = marked.parse(text);
+    } else {
+        text = text.replace(/\n/g, '<br>');
+    }
+
+    // Restore source citation tokens as interactive spans
+    text = text.replace(
+        /%%SOURCE_(\d+)%%/g,
         '<span class="source-citation" data-source="$1">$1</span>'
     );
 
-    // Convert line breaks
-    formatted = formatted.replace(/\n/g, '<br>');
-
-    return formatted;
+    return text;
 }
 
 // ============================================
