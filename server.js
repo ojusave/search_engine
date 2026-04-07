@@ -24,7 +24,7 @@ app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h',
+  maxAge: '5m',
   etag: true
 }));
 

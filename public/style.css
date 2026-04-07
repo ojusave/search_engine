@@ -438,9 +438,10 @@ h1, h2, h3, h4, h5, h6 {
    ============================================ */
 
 .workflows-banner {
-    display: flex;
+    display: flex !important;
     align-items: center;
     gap: 16px;
+    width: 100%;
     text-decoration: none;
     text-align: left;
     margin-bottom: 48px;
@@ -450,6 +451,7 @@ h1, h2, h3, h4, h5, h6 {
     position: relative;
     overflow: hidden;
     transition: var(--transition);
+    box-sizing: border-box;
 }
 
 .workflows-banner::before {
