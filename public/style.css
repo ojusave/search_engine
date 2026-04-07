@@ -137,10 +137,10 @@ h1, h2, h3, h4, h5, h6 {
 /* External toggle button — always visible, sits at sidebar edge */
 .sidebar-toggle-btn {
     position: fixed;
-    top: 16px;
+    top: 10px;
     left: max(8px, calc(var(--sidebar-width) - 16px));
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     border: 1px solid var(--border-hover);
     background: var(--bg-tertiary);
@@ -161,7 +161,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .sidebar-header {
-    padding: 16px;
+    padding: 10px 16px;
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -171,12 +171,12 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 8px 16px;
     background: var(--accent-primary);
     color: white;
     border: none;
     border-radius: var(--radius-md);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
     transition: var(--transition);
@@ -309,8 +309,9 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    padding: 12px 20px;
+    gap: 14px;
+    padding: 10px 20px;
+    min-height: 46px;
     border-bottom: 1px solid var(--border-color);
     flex-shrink: 0;
 }
@@ -1038,7 +1039,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .theme-toggle {
     position: fixed;
-    top: 16px;
+    top: 7px;
     right: 16px;
     z-index: 1000;
 }
@@ -1047,8 +1048,8 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: var(--bg-card);
