@@ -129,39 +129,39 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--accent-primary);
 }
 
-.sidebar-collapse-btn {
-    position: absolute;
+.sidebar.collapsed .sidebar-resize-handle {
+    width: 8px;
+    right: -4px;
+}
+
+/* External toggle button — always visible, sits at sidebar edge */
+.sidebar-toggle-btn {
+    position: fixed;
     top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-sm);
+    left: calc(var(--sidebar-width) - 16px);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     border: 1px solid var(--border-color);
     background: var(--bg-card);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 102;
-    transition: var(--transition);
-    opacity: 0.7;
+    z-index: 200;
+    transition: left 0.2s ease, background 0.15s ease, color 0.15s ease;
+    box-shadow: var(--shadow-sm);
 }
 
-.sidebar-collapse-btn:hover {
-    opacity: 1;
+.sidebar-toggle-btn:hover {
     background: var(--bg-tertiary);
     color: var(--text-primary);
+    border-color: var(--border-hover);
 }
 
-.sidebar.collapsed .sidebar-collapse-btn {
+.sidebar-toggle-btn.collapsed {
     left: 8px;
-    right: auto;
-}
-
-.sidebar.collapsed .sidebar-resize-handle {
-    width: 8px;
-    right: -4px;
 }
 
 .sidebar-header {
@@ -361,32 +361,6 @@ h1, h2, h3, h4, h5, h6 {
     height: 16px;
 }
 
-/* ============================================
-   Sidebar Toggle (mobile)
-   ============================================ */
-
-.sidebar-toggle {
-    display: none;
-    position: fixed;
-    top: 16px;
-    left: 16px;
-    z-index: 150;
-    width: 36px;
-    height: 36px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    box-shadow: var(--shadow-sm);
-}
-
-.sidebar-toggle svg {
-    width: 18px;
-    height: 18px;
-    color: var(--text-secondary);
-}
 
 /* ============================================
    Main Content
@@ -899,12 +873,17 @@ h1, h2, h3, h4, h5, h6 {
         transform: translateX(-100%);
     }
 
-    .sidebar.open {
+    .sidebar:not(.collapsed) {
         transform: translateX(0);
+        width: 280px !important;
     }
 
-    .sidebar-toggle {
-        display: flex;
+    .sidebar-toggle-btn {
+        left: 8px;
+    }
+
+    .sidebar-toggle-btn:not(.collapsed) {
+        left: 264px;
     }
 
     .main-content {

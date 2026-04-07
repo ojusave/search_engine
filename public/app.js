@@ -14,7 +14,6 @@ const followupButton = document.getElementById('followupButton');
 const newChatBtn = document.getElementById('newChatBtn');
 const conversationList = document.getElementById('conversationList');
 const sidebar = document.getElementById('sidebar');
-const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebarResizeHandle = document.getElementById('sidebarResizeHandle');
 const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
 const collapseIcon = document.getElementById('collapseIcon');
@@ -63,17 +62,9 @@ function setupEventListeners() {
         });
     });
 
-    // Sidebar toggle (mobile)
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-    });
-
     // Sidebar collapse toggle
     if (sidebarCollapseBtn) {
-        sidebarCollapseBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleSidebarCollapse();
-        });
+        sidebarCollapseBtn.addEventListener('click', () => toggleSidebarCollapse());
     }
 
     // Theme toggle
@@ -85,17 +76,15 @@ function setupEventListeners() {
 // ============================================
 
 function initSidebarResize() {
-    // Load saved width and collapsed state from localStorage
     const savedWidth = localStorage.getItem('sidebarWidth');
     const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    
+
     if (savedWidth && !isCollapsed) {
         document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
     }
-    
+
     if (isCollapsed) {
-        sidebar.classList.add('collapsed');
-        updateCollapseIcons(true);
+        setSidebarCollapsed(true, false);
     }
 
     if (!sidebarResizeHandle) return;
@@ -106,11 +95,10 @@ function initSidebarResize() {
 
     sidebarResizeHandle.addEventListener('mousedown', (e) => {
         if (sidebar.classList.contains('collapsed')) {
-            // If collapsed, expand first
             toggleSidebarCollapse();
             return;
         }
-        
+
         isResizing = true;
         startX = e.clientX;
         startWidth = parseInt(window.getComputedStyle(sidebar).width, 10);
@@ -124,21 +112,13 @@ function initSidebarResize() {
         if (!isResizing) return;
 
         const width = startWidth + e.clientX - startX;
-        const minWidth = 0;
-        const maxWidth = 500;
-
-        if (width >= minWidth && width <= maxWidth) {
+        if (width >= 0 && width <= 500) {
             if (width < 50) {
-                // Collapse if dragged too small
-                sidebar.classList.add('collapsed');
-                localStorage.setItem('sidebarCollapsed', 'true');
-                updateCollapseIcons(true);
+                setSidebarCollapsed(true, true);
             } else {
-                sidebar.classList.remove('collapsed');
+                setSidebarCollapsed(false, true);
                 document.documentElement.style.setProperty('--sidebar-width', width + 'px');
                 localStorage.setItem('sidebarWidth', width);
-                localStorage.setItem('sidebarCollapsed', 'false');
-                updateCollapseIcons(false);
             }
         }
     });
@@ -155,24 +135,25 @@ function initSidebarResize() {
 
 function toggleSidebarCollapse() {
     const isCollapsed = sidebar.classList.contains('collapsed');
-    
+    setSidebarCollapsed(!isCollapsed, true);
+
     if (isCollapsed) {
-        sidebar.classList.remove('collapsed');
         const savedWidth = localStorage.getItem('sidebarWidth') || '280';
         document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
-        localStorage.setItem('sidebarCollapsed', 'false');
-        updateCollapseIcons(false);
-    } else {
-        sidebar.classList.add('collapsed');
-        localStorage.setItem('sidebarCollapsed', 'true');
-        updateCollapseIcons(true);
     }
 }
 
-function updateCollapseIcons(isCollapsed) {
+function setSidebarCollapsed(collapsed, persist) {
+    sidebar.classList.toggle('collapsed', collapsed);
+    if (sidebarCollapseBtn) sidebarCollapseBtn.classList.toggle('collapsed', collapsed);
+
     if (collapseIcon && expandIcon) {
-        collapseIcon.style.display = isCollapsed ? 'none' : 'block';
-        expandIcon.style.display = isCollapsed ? 'block' : 'none';
+        collapseIcon.style.display = collapsed ? 'none' : 'block';
+        expandIcon.style.display = collapsed ? 'block' : 'none';
+    }
+
+    if (persist) {
+        localStorage.setItem('sidebarCollapsed', collapsed ? 'true' : 'false');
     }
 }
 

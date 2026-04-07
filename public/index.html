@@ -53,14 +53,6 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Toggle sidebar">
-                <svg id="collapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-                <svg id="expandIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="display: none;">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                </svg>
-            </button>
             <div class="sidebar-resize-handle" id="sidebarResizeHandle"></div>
             <div class="sidebar-header">
                 <button class="new-chat-btn" id="newChatBtn">
@@ -101,12 +93,13 @@
             </div>
         </aside>
 
-        <!-- Toggle Sidebar Button (mobile) -->
-        <button class="sidebar-toggle" id="sidebarToggle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
+        <!-- Sidebar toggle — lives outside the sidebar so it's always reachable -->
+        <button class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle sidebar">
+            <svg id="collapseIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <svg id="expandIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="display: none;">
+                <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
         </button>
 
