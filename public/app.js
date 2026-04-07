@@ -24,6 +24,7 @@ const themeToggle = document.getElementById('themeToggle');
 let currentConversationId = null;
 let isLoading = false;
 let eventSource = null;
+let currentSources = [];
 
 // ============================================
 // Initialization
@@ -431,8 +432,8 @@ async function performSearch(query) {
 
         eventSource.addEventListener('sources', (e) => {
             const data = JSON.parse(e.data);
+            currentSources = data.sources;
 
-            // Display sources
             sourcesGrid.innerHTML = data.sources.map(source => `
                 <a href="${source.url}" target="_blank" class="source-card">
                     <span class="source-card-number">${source.number}</span>
@@ -442,8 +443,6 @@ async function performSearch(query) {
             `).join('');
 
             sourcesDiv.style.display = 'block';
-
-            // Clear loading, prepare for answer
             answerDiv.innerHTML = '';
         });
 
@@ -530,7 +529,7 @@ function renderMessages(messages) {
                     </div>
                 </div>
                 <div class="message-answer">
-                    <div class="answer-content">${formatAnswer(msg.answer || '')}</div>
+                    <div class="answer-content">${formatAnswer(msg.answer || '', sources)}</div>
                 </div>
                 ${sources && sources.length > 0 ? `
                     <div class="message-sources">
@@ -553,8 +552,10 @@ function renderMessages(messages) {
     scrollToBottom();
 }
 
-function formatAnswer(answer) {
+function formatAnswer(answer, sources) {
     if (!answer) return '';
+
+    const sourceList = sources || currentSources || [];
 
     // Replace [Source X] with placeholder tokens before markdown parsing
     let text = answer.replace(
@@ -570,11 +571,15 @@ function formatAnswer(answer) {
         text = text.replace(/\n/g, '<br>');
     }
 
-    // Restore source citation tokens as interactive spans
-    text = text.replace(
-        /%%SOURCE_(\d+)%%/g,
-        '<span class="source-citation" data-source="$1">$1</span>'
-    );
+    // Restore source citations as clickable links to the actual URLs
+    text = text.replace(/%%SOURCE_(\d+)%%/g, (_, num) => {
+        const idx = parseInt(num) - 1;
+        const source = sourceList[idx];
+        if (source?.url) {
+            return `<a href="${source.url}" target="_blank" rel="noopener noreferrer" class="source-citation" title="${escapeHtml(source.title || '')}">${num}</a>`;
+        }
+        return `<span class="source-citation">${num}</span>`;
+    });
 
     return text;
 }

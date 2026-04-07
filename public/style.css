@@ -811,12 +811,14 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
     cursor: pointer;
     transition: var(--transition);
-    margin: 0 2px;
+    margin: 0 1px;
+    vertical-align: baseline;
 }
 
 .source-citation:hover {
     background: var(--accent-primary);
     color: white;
+    text-decoration: none;
 }
 
 /* ============================================
