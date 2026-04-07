@@ -50,6 +50,26 @@ let dbConnected = false;
 })();
 
 // ============================================
+// Periodic cleanup — wipe conversations every 15 minutes
+// ============================================
+
+const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
+
+const cleanupTimer = setInterval(async () => {
+  try {
+    if (dbConnected) {
+      await db.deleteAllConversations();
+    }
+    memoryStore.deleteAll();
+    console.log(`[CLEANUP] All conversations purged (runs every 15 min)`);
+  } catch (err) {
+    console.error('[CLEANUP] Failed:', err.message);
+  }
+}, CLEANUP_INTERVAL_MS);
+
+cleanupTimer.unref();
+
+// ============================================
 // Health check
 // ============================================
 
