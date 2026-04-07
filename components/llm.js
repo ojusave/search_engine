@@ -44,7 +44,7 @@ Please provide a comprehensive answer to the question based on the search result
  * @param {Function} logCallback - Optional callback function for logging
  * @returns {Promise<string>} The complete AI-generated answer
  */
-async function generateAnswerStream(query, searchResults, onChunk, logCallback = null) {
+async function generateAnswerStream(query, searchResults, onChunk, logCallback = null, { signal } = {}) {
   const log = (step, message, data = null) => {
     if (logCallback) {
       logCallback(step, message, data);
@@ -82,7 +82,8 @@ async function generateAnswerStream(query, searchResults, onChunk, logCallback =
       temperature: 0.7,
       max_tokens: 2000,
       stream: true
-    })
+    }),
+    signal
   });
 
   if (!response.ok) {
@@ -94,7 +95,6 @@ async function generateAnswerStream(query, searchResults, onChunk, logCallback =
     throw new Error(`Groq API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
   }
 
-  // Process the stream
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let fullAnswer = '';
@@ -102,19 +102,18 @@ async function generateAnswerStream(query, searchResults, onChunk, logCallback =
 
   try {
     while (true) {
-      const { done, value } = await reader.read();
+      if (signal?.aborted) break;
 
+      const { done, value } = await reader.read();
       if (done) break;
 
       buffer += decoder.decode(value, { stream: true });
 
-      // Process complete SSE messages
       const lines = buffer.split('\n');
-      buffer = lines.pop() || ''; // Keep incomplete line in buffer
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
         const trimmedLine = line.trim();
-
         if (!trimmedLine || trimmedLine === 'data: [DONE]') continue;
 
         if (trimmedLine.startsWith('data: ')) {

@@ -6,6 +6,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
@@ -20,8 +21,12 @@ const memoryStore = require('./components/memoryStore');
 const app = express();
 
 app.use(cors());
+app.use(compression());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1h',
+  etag: true
+}));
 
 // ============================================
 // Database initialization
@@ -136,20 +141,27 @@ app.get('/api/conversations/:conversationId/search/stream', async (req, res) => 
     return res.status(400).json({ error: 'Query is required' });
   }
 
-  // SSE headers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
 
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
+  req.on('close', () => {
+    abortController.abort();
+  });
+
   const sendEvent = (event, data) => {
-    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    if (!signal.aborted) {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    }
   };
 
   try {
     const messageId = uuidv4();
 
-    // Load conversation history
     let history = [];
     try {
       history = dbConnected
@@ -162,19 +174,17 @@ app.get('/api/conversations/:conversationId/search/stream', async (req, res) => 
     console.log(`[CONTEXT] Conversation ${conversationId}: ${history.length} prior messages`);
     sendEvent('status', { message: 'Processing query...', step: 1 });
 
-    // Rewrite query when follow-up context is needed
     let searchQuery = query;
     if (history.length > 0 && needsRewriting(query)) {
       sendEvent('status', { message: 'Understanding context...', step: 1 });
-      searchQuery = await rewriteQuery(query, history);
+      searchQuery = await rewriteQuery(query, history, { signal });
       console.log(`[REWRITE] "${query}" -> "${searchQuery}"`);
       sendEvent('rewrite', { original: query, rewritten: searchQuery });
     }
 
-    // Search the web
     sendEvent('status', { message: 'Searching the web...', step: 2 });
     const searchStartTime = Date.now();
-    const searchResults = await searchWeb(searchQuery, numResults);
+    const searchResults = await searchWeb(searchQuery, numResults, { signal });
     const searchDuration = Date.now() - searchStartTime;
 
     if (!searchResults?.length) {
@@ -192,7 +202,6 @@ app.get('/api/conversations/:conversationId/search/stream', async (req, res) => 
     sendEvent('sources', { sources, sourceCount: sources.length, searchDuration: `${searchDuration}ms` });
     sendEvent('status', { message: 'Generating answer...', step: 3 });
 
-    // Stream the LLM answer
     const llmStartTime = Date.now();
     let fullAnswer = '';
 
@@ -200,12 +209,12 @@ app.get('/api/conversations/:conversationId/search/stream', async (req, res) => 
       searchQuery,
       searchResults,
       (chunk) => { fullAnswer += chunk; sendEvent('chunk', { text: chunk }); },
-      (step, msg) => console.log(`[${step}] ${msg}`)
+      (step, msg) => console.log(`[${step}] ${msg}`),
+      { signal }
     );
 
     const llmDuration = Date.now() - llmStartTime;
 
-    // Persist to conversation history
     const messageData = {
       id: messageId,
       role: 'user',
@@ -232,6 +241,7 @@ app.get('/api/conversations/:conversationId/search/stream', async (req, res) => 
 
     res.end();
   } catch (error) {
+    if (signal.aborted) return;
     console.error('Error in streaming search:', error);
     sendEvent('error', { message: error.message });
     res.end();
@@ -256,15 +266,24 @@ app.get('/api/search/stream', async (req, res) => {
   res.setHeader('Connection', 'keep-alive');
   res.setHeader('X-Accel-Buffering', 'no');
 
+  const abortController = new AbortController();
+  const { signal } = abortController;
+
+  req.on('close', () => {
+    abortController.abort();
+  });
+
   const sendEvent = (event, data) => {
-    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    if (!signal.aborted) {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    }
   };
 
   try {
     sendEvent('status', { message: 'Searching the web...', step: 1 });
 
     const searchStartTime = Date.now();
-    const searchResults = await searchWeb(query, numResults);
+    const searchResults = await searchWeb(query, numResults, { signal });
     const searchDuration = Date.now() - searchStartTime;
 
     if (!searchResults?.length) {
@@ -287,7 +306,8 @@ app.get('/api/search/stream', async (req, res) => {
       query,
       searchResults,
       (chunk) => sendEvent('chunk', { text: chunk }),
-      (step, msg) => console.log(`[${step}] ${msg}`)
+      (step, msg) => console.log(`[${step}] ${msg}`),
+      { signal }
     );
 
     sendEvent('done', {
@@ -298,6 +318,7 @@ app.get('/api/search/stream', async (req, res) => {
 
     res.end();
   } catch (error) {
+    if (signal.aborted) return;
     console.error('Error in streaming search:', error);
     sendEvent('error', { message: error.message });
     res.end();
@@ -349,7 +370,29 @@ app.get('/c/:id', (req, res) => {
 // ============================================
 
 const PORT = config.server.port;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`Database: ${dbConnected ? 'connected' : 'not configured'}`);
 });
+
+// Keep-alive timeout should exceed any load balancer's idle timeout (Render uses 60s)
+server.keepAliveTimeout = 65000;
+server.headersTimeout = 66000;
+
+function gracefulShutdown(signal) {
+  console.log(`\n${signal} received — shutting down gracefully`);
+  server.close(async () => {
+    if (dbConnected) {
+      await db.close();
+      console.log('Database pool closed');
+    }
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

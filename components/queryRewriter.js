@@ -11,7 +11,7 @@ const config = require('../config');
  * @param {Array} history - Previous messages in the conversation
  * @returns {Promise<string>} The rewritten, standalone query
  */
-async function rewriteQuery(query, history = []) {
+async function rewriteQuery(query, history = [], { signal } = {}) {
   // If no history, return original query
   if (!history || history.length === 0) {
     return query;
@@ -70,9 +70,10 @@ Rewrite this as a standalone search query:`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.1, // Low temperature for consistent rewrites
+        temperature: 0.1,
         max_tokens: 150
-      })
+      }),
+      signal
     });
 
     if (!response.ok) {

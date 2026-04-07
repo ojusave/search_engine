@@ -6,13 +6,14 @@
 const { Pool } = require('pg');
 const config = require('../config');
 
-// Create connection pool
+// Create connection pool — sized for concurrent users sharing connections
 const pool = new Pool({
   connectionString: config.database.url,
   ssl: config.database.ssl ? { rejectUnauthorized: false } : false,
-  max: 10,
+  max: 25,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 10000,
 });
 
 // Test connection on startup

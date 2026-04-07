@@ -2,13 +2,22 @@
  * In-Memory Store
  * Fallback storage when PostgreSQL is not configured.
  * Mirrors the database module API so the server can swap transparently.
+ * Capped at MAX_CONVERSATIONS to prevent unbounded memory growth.
  */
 
+const MAX_CONVERSATIONS = 500;
 const conversations = new Map();
+
+function evictOldest() {
+  if (conversations.size <= MAX_CONVERSATIONS) return;
+  const oldest = conversations.keys().next().value;
+  conversations.delete(oldest);
+}
 
 function createConversation(id) {
   const conv = { id, messages: [], created_at: new Date().toISOString() };
   conversations.set(id, conv);
+  evictOldest();
   return conv;
 }
 

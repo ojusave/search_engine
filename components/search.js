@@ -11,7 +11,7 @@ const config = require('../config');
  * @param {number} numResults - Number of results to return (default: 5)
  * @returns {Promise<Array>} Array of search results with content
  */
-async function searchWeb(query, numResults = 5) {
+async function searchWeb(query, numResults = 5, { signal } = {}) {
   try {
     const response = await fetch(`${config.exa.baseUrl}/search`, {
       method: 'POST',
@@ -24,11 +24,12 @@ async function searchWeb(query, numResults = 5) {
         num_results: numResults,
         contents: {
           text: {
-            max_characters: 1000 // Limit text content per result
+            max_characters: 1000
           }
         },
-        use_autoprompt: true // Let Exa improve the query
-      })
+        use_autoprompt: true
+      }),
+      signal
     });
 
     if (!response.ok) {
