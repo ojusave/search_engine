@@ -287,75 +287,6 @@ h1, h2, h3, h4, h5, h6 {
     color: #ef4444;
 }
 
-/* Sidebar footer */
-.sidebar-footer {
-    padding: 12px 16px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.deploy-btn {
-    display: inline-flex;
-    align-self: flex-start;
-}
-
-.deploy-btn img {
-    height: 32px;
-    width: auto;
-}
-
-.sidebar-footer-links {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.8rem;
-    transition: var(--transition);
-}
-
-.sidebar-link:hover {
-    color: var(--text-primary);
-}
-
-.sidebar-link svg {
-    width: 14px;
-    height: 14px;
-}
-
-.sidebar-link-divider {
-    width: 1px;
-    height: 12px;
-    background: var(--border-color);
-}
-
-/* Legacy support */
-.github-link-small {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.85rem;
-    transition: var(--transition);
-}
-
-.github-link-small:hover {
-    color: var(--text-primary);
-}
-
-.github-link-small svg {
-    width: 16px;
-    height: 16px;
-}
 
 
 /* ============================================
@@ -424,19 +355,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-deploy img {
-    height: 28px;
+    height: 40px;
     width: auto;
 }
 
 .footer-github {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
+    gap: 6px;
+    padding: 8px 16px;
     border: 1px solid var(--border-hover);
     color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
     transition: var(--transition);
@@ -448,8 +379,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-github svg {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
 }
 
 .footer-promo {
