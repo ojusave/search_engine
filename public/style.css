@@ -399,6 +399,45 @@ h1, h2, h3, h4, h5, h6 {
     flex-shrink: 0;
 }
 
+.footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-deploy {
+    display: inline-flex;
+}
+
+.footer-deploy img {
+    height: 28px;
+    width: auto;
+}
+
+.footer-github {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--border-hover);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    transition: var(--transition);
+}
+
+.footer-github:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+.footer-github svg {
+    width: 14px;
+    height: 14px;
+}
+
 .footer-badges {
     display: flex;
     align-items: center;
