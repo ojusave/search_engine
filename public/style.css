@@ -437,9 +437,13 @@ h1, h2, h3, h4, h5, h6 {
    ============================================ */
 
 .workflows-banner {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     text-decoration: none;
-    margin-bottom: 32px;
+    text-align: left;
+    margin-bottom: 48px;
+    padding: 20px 24px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     position: relative;
@@ -453,30 +457,23 @@ h1, h2, h3, h4, h5, h6 {
     left: 0;
     top: 0;
     bottom: 0;
-    width: 3px;
-    background: linear-gradient(180deg, #9333ea, #7e22ce);
+    width: 4px;
+    background: linear-gradient(180deg, #a855f7, #7e22ce);
 }
 
 .workflows-banner:hover {
     border-color: var(--accent-primary);
-    box-shadow: 0 2px 12px rgba(147, 51, 234, 0.12);
+    box-shadow: 0 4px 20px rgba(147, 51, 234, 0.14);
 }
 
 [data-theme="dark"] .workflows-banner:hover {
-    box-shadow: 0 2px 12px rgba(168, 85, 247, 0.15);
-}
-
-.workflows-banner-inner {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px 14px 20px;
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.18);
 }
 
 .workflows-banner-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #a855f7, #7e22ce);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -487,14 +484,13 @@ h1, h2, h3, h4, h5, h6 {
 .workflows-banner-text {
     flex: 1;
     min-width: 0;
-    text-align: left;
 }
 
 .workflows-banner-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
+    gap: 10px;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
@@ -503,20 +499,20 @@ h1, h2, h3, h4, h5, h6 {
 .workflows-pill {
     font-size: 0.6rem;
     font-weight: 700;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
-    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    background: linear-gradient(135deg, #a855f7, #7e22ce);
     color: white;
-    padding: 2px 7px;
-    line-height: 1.4;
+    padding: 2px 8px;
+    line-height: 1.5;
 }
 
 .workflows-banner-desc {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 2px;
+    margin-top: 4px;
     font-family: 'Inter', sans-serif;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .workflows-banner-arrow {
@@ -527,7 +523,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .workflows-banner:hover .workflows-banner-arrow {
     color: var(--accent-primary);
-    transform: translateX(2px);
+    transform: translateX(3px);
 }
 
 .welcome-content h1 {
@@ -1153,25 +1149,22 @@ h1, h2, h3, h4, h5, h6 {
 
     /* Workflows banner mobile */
     .workflows-banner {
-        margin-bottom: 24px;
-    }
-
-    .workflows-banner-inner {
-        gap: 10px;
-        padding: 12px 12px 12px 16px;
+        margin-bottom: 32px;
+        gap: 12px;
+        padding: 16px 16px 16px 20px;
     }
 
     .workflows-banner-icon {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
     }
 
     .workflows-banner-title {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 
     .workflows-banner-desc {
-        font-size: 0.75rem;
+        font-size: 0.78rem;
     }
 
     /* Welcome screen */
