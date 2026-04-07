@@ -136,16 +136,18 @@ function initSidebarResize() {
 function toggleSidebarCollapse() {
     const isCollapsed = sidebar.classList.contains('collapsed');
     setSidebarCollapsed(!isCollapsed, true);
-
-    if (isCollapsed) {
-        const savedWidth = localStorage.getItem('sidebarWidth') || '280';
-        document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
-    }
 }
 
 function setSidebarCollapsed(collapsed, persist) {
     sidebar.classList.toggle('collapsed', collapsed);
     if (sidebarCollapseBtn) sidebarCollapseBtn.classList.toggle('collapsed', collapsed);
+
+    if (collapsed) {
+        document.documentElement.style.setProperty('--sidebar-width', '0px');
+    } else {
+        const savedWidth = localStorage.getItem('sidebarWidth') || '280';
+        document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
+    }
 
     if (collapseIcon && expandIcon) {
         collapseIcon.style.display = collapsed ? 'none' : 'block';

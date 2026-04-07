@@ -138,7 +138,7 @@ h1, h2, h3, h4, h5, h6 {
 .sidebar-toggle-btn {
     position: fixed;
     top: 16px;
-    left: calc(var(--sidebar-width) - 16px);
+    left: max(8px, calc(var(--sidebar-width) - 16px));
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -158,10 +158,6 @@ h1, h2, h3, h4, h5, h6 {
     background: var(--bg-tertiary);
     color: var(--text-primary);
     border-color: var(--border-hover);
-}
-
-.sidebar-toggle-btn.collapsed {
-    left: 8px;
 }
 
 .sidebar-header {
@@ -869,21 +865,9 @@ h1, h2, h3, h4, h5, h6 {
    ============================================ */
 
 @media (max-width: 768px) {
-    .sidebar {
+    .sidebar.collapsed {
         transform: translateX(-100%);
-    }
-
-    .sidebar:not(.collapsed) {
-        transform: translateX(0);
         width: 280px !important;
-    }
-
-    .sidebar-toggle-btn {
-        left: 8px;
-    }
-
-    .sidebar-toggle-btn:not(.collapsed) {
-        left: 264px;
     }
 
     .main-content {
