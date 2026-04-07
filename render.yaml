@@ -1,6 +1,3 @@
-# Render Blueprint for AI Search Assistant
-# Deploy with: https://render.com/deploy
-
 databases:
   - name: search-assistant-db
     plan: free

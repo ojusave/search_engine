@@ -2,7 +2,7 @@
 
 A [Perplexity](https://perplexity.ai/)-style AI search assistant with conversational search, real-time streaming responses, and context memory. Built with [Groq](https://groq.com/) for LLM inference, [Exa.ai](https://exa.ai/) for neural search, and [Render](https://render.com/) for deployment with [Render Postgres](https://render.com/docs/postgresql-refresh).
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ojusave/search_engine)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/ojusave/search_engine)&nbsp;&nbsp;[![GitHub](https://img.shields.io/badge/GitHub-Source-181717?logo=github)](https://github.com/ojusave/search_engine)
 
 ## Screenshots
 
@@ -14,20 +14,20 @@ A [Perplexity](https://perplexity.ai/)-style AI search assistant with conversati
 
 ## Features
 
-- **Conversational Search** - Ask follow-up questions that understand context
-- **Real-time Streaming** - Answers appear word-by-word using [Server-Sent Events (SSE)](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
-- **Smart Query Rewriting** - Automatically expands ambiguous queries using conversation history
-- **Source Citations** - Inline citations with clickable source cards
-- **Conversation History** - Database persistence or in-memory storage
-- **One-Click Deployment** - Deploy to [Render](https://render.com/) with automatic database provisioning
+- **Conversational Search** — Ask follow-up questions that understand context
+- **Real-time Streaming** — Answers appear word-by-word via [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+- **Smart Query Rewriting** — Automatically expands ambiguous queries using conversation history
+- **Source Citations** — Inline citations with clickable source cards
+- **Conversation History** — PostgreSQL persistence or in-memory fallback
+- **One-Click Deploy** — Deploy to [Render](https://render.com/) with automatic database provisioning
 
 ## Prerequisites
 
 **API Keys Required:**
-- **Groq API Key**: Sign up at [console.groq.com](https://console.groq.com/) and create an API key
-- **Exa.ai API Key**: Sign up at [dashboard.exa.ai](https://dashboard.exa.ai/) and get your API key
+- **Groq API Key** — Sign up at [console.groq.com](https://console.groq.com/) and create an API key
+- **Exa.ai API Key** — Sign up at [dashboard.exa.ai](https://dashboard.exa.ai/) and get your API key
 
-> **Note**: For production deployment on Render, the free tier database (1GB, 30-day expiry) is suitable for testing. Upgrade to a paid plan ($7/month+) for production use.
+> The free-tier Render Postgres database (1 GB, 30-day expiry) works for testing. Upgrade to a paid plan for production.
 
 ## Quick Start
 
@@ -36,89 +36,87 @@ A [Perplexity](https://perplexity.ai/)-style AI search assistant with conversati
 ```bash
 npm install
 cp .env.example .env
-# Edit .env and add your API keys (see Prerequisites above)
+# Add your API keys to .env
 npm start
 ```
 
-Open `http://localhost:3000`
-
-> **Note**: `DATABASE_URL` is optional - the app uses in-memory storage if not set.
+Open `http://localhost:3000`. `DATABASE_URL` is optional — the app uses in-memory storage if unset.
 
 ### Deploy to Render
 
-> ⚠️ **Get API keys first** (see [Prerequisites](#prerequisites))
+> Get your API keys first (see [Prerequisites](#prerequisites)).
 
-Click the "Deploy to Render" button above, then see [Deployment](#deployment) for complete setup instructions.
+Click the **Deploy to Render** button above, then add your `GROQ_API_KEY` and `EXA_API_KEY` in the Render dashboard.
 
 ## How It Works
 
-The system loads conversation history, rewrites ambiguous queries using [Groq](https://groq.com/), searches the web with [Exa.ai](https://exa.ai/), streams AI-generated answers with source citations, and saves Q&A pairs to conversation history.
+1. Loads conversation history from Postgres (or in-memory)
+2. Rewrites ambiguous follow-up queries using [Groq](https://groq.com/)
+3. Searches the web with [Exa.ai](https://exa.ai/)
+4. Streams AI-generated answers with source citations
+5. Saves the Q&A pair back to conversation history
 
 ## Project Structure
 
-Key files: [`server.js`](server.js) (Express API), [`components/llm.js`](components/llm.js) (Groq streaming), [`components/search.js`](components/search.js) (Exa.ai), [`components/database.js`](components/database.js) (PostgreSQL), [`render.yaml`](render.yaml) (deployment), [`.env.example`](.env.example) (config template).
+```
+├── server.js                  # Express API server
+├── config.js                  # Environment & API config
+├── render.yaml                # Render Blueprint (IaC)
+├── components/
+│   ├── llm.js                 # Groq streaming & prompt builder
+│   ├── search.js              # Exa.ai web search
+│   ├── queryRewriter.js       # Context-aware query rewriting
+│   ├── responseFormatter.js   # Response formatting & citations
+│   └── database.js            # PostgreSQL connection & queries
+├── public/
+│   ├── index.html             # Frontend shell
+│   ├── style.css              # DDS-themed styles
+│   └── app.js                 # Frontend logic (SSE, routing, UI)
+└── scripts/
+    └── init-db.js             # Manual DB schema init
+```
 
-## Configuration
+## Environment Variables
 
-### Environment Variables
-
-See [`.env.example`](.env.example) for the complete template:
+See [`.env.example`](.env.example) for the template.
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GROQ_API_KEY` | Yes | Groq API credentials |
 | `EXA_API_KEY` | Yes | Exa.ai API credentials |
-| `DATABASE_URL` | No | PostgreSQL connection string (optional) |
-| `PORT` | No | Server port (defaults to 3000) |
-
-### Customization
-
-- **AI Model**: Edit [`config.js`](config.js) - see [Groq Models](https://console.groq.com/docs/models)
-- **Search Results**: Edit [`public/app.js`](public/app.js) - see [Exa.ai API](https://docs.exa.ai/reference/search)
-- **AI Behavior**: Edit system prompt in [`components/llm.js`](components/llm.js)
-
-## Database Setup
-
-**Automatic:** Uses [`render.yaml`](render.yaml) when deploying (see [Deployment](#deployment)). The `DATABASE_URL` is auto-injected and schema is created on first startup.
-
-**Manual:** See [Manual Deployment](#manual-deployment) section below.
-
-**No Database:** If `DATABASE_URL` is not set, the app uses in-memory storage (lost on restart).
-
+| `DATABASE_URL` | No | PostgreSQL connection string |
+| `PORT` | No | Server port (default: 3000) |
 
 ## Deployment
 
-### Automatic Deployment (Recommended)
+### Automatic (Recommended)
 
-The project includes a [`render.yaml`](render.yaml) blueprint that automatically provisions the web service and [Render Postgres](https://render.com/docs/postgresql-refresh) database.
+The [`render.yaml`](render.yaml) blueprint provisions the web service and Postgres database automatically.
 
-**Steps:**
-1. Click the "Deploy to Render" button above, or deploy from [Render Dashboard](https://dashboard.render.com/) by selecting the repository with `render.yaml`
-2. Add environment variables in the dashboard: `GROQ_API_KEY`, `EXA_API_KEY` (get from [Prerequisites](#prerequisites))
+1. Click **Deploy to Render** above (or import the repo in [Render Dashboard](https://dashboard.render.com/))
+2. Add environment variables: `GROQ_API_KEY`, `EXA_API_KEY`
 
-### Manual Deployment
+### Manual
 
-For manual setup without `render.yaml`:
-
-1. **Push code to GitHub**
-2. **Create Web Service:**
-   - Go to [Render Dashboard](https://dashboard.render.com/) → "New" → "Web Service"
-   - Connect your GitHub repository
-   - Configure: Name, Runtime (Node), Build Command (`npm install`), Start Command (`npm start`)
-3. **Create Database (Optional):**
-   - Go to Dashboard → "New" → "PostgreSQL"
-   - Configure: Name, Database, User, Plan
-   - Copy the **Internal Database URL**
-4. **Add Environment Variables:**
-   - Add API keys from [Prerequisites](#prerequisites): `GROQ_API_KEY`, `EXA_API_KEY`
-   - Add `DATABASE_URL` from step 3 (optional)
-5. **Deploy!**
+1. Push code to GitHub
+2. Create a **Web Service** in the [Render Dashboard](https://dashboard.render.com/) — connect your repo, set build (`npm install`) and start (`npm start`) commands
+3. Optionally create a **PostgreSQL** database and copy the Internal Database URL
+4. Add environment variables: `GROQ_API_KEY`, `EXA_API_KEY`, and optionally `DATABASE_URL`
 
 ## API Reference
 
-**Endpoints:** `POST/GET /api/conversations`, `GET /api/conversations/:id/search/stream` (SSE), `GET /api/search/stream`, `POST /api/search`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/conversations` | Create a conversation |
+| `GET` | `/api/conversations` | List recent conversations |
+| `GET` | `/api/conversations/:id` | Get conversation with messages |
+| `DELETE` | `/api/conversations/:id` | Delete a conversation |
+| `DELETE` | `/api/conversations` | Delete all conversations |
+| `GET` | `/api/conversations/:id/search/stream` | Streaming search (SSE) |
+| `GET` | `/api/search/stream` | Simple streaming search |
+| `POST` | `/api/search` | Non-streaming search |
 
-**SSE Events:** `status`, `rewrite`, `sources`, `chunk`, `done`, `error` - see [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
+**SSE Events:** `status`, `rewrite`, `sources`, `chunk`, `done`, `error`
 
 ## License
 
