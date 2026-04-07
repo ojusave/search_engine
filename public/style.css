@@ -371,6 +371,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ============================================
+   Header bar
+   ============================================ */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+/* ============================================
    Welcome Screen
    ============================================ */
 
@@ -436,12 +450,6 @@ h1, h2, h3, h4, h5, h6 {
 .footer-github svg {
     width: 14px;
     height: 14px;
-}
-
-.footer-badges {
-    display: flex;
-    align-items: center;
-    gap: 10px;
 }
 
 .footer-promo {
