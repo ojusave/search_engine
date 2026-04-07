@@ -78,6 +78,17 @@ function setupEventListeners() {
 
     // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
+
+    // Force external links to open in new tab on mobile (in-app browsers sometimes ignore target=_blank)
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a[target="_blank"]');
+        if (!link) return;
+        const href = link.getAttribute('href');
+        if (href && href.startsWith('http')) {
+            e.preventDefault();
+            window.open(href, '_blank', 'noopener,noreferrer');
+        }
+    });
 }
 
 // ============================================
