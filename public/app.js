@@ -68,6 +68,14 @@ function setupEventListeners() {
         sidebarCollapseBtn.addEventListener('click', () => toggleSidebarCollapse());
     }
 
+    // Close sidebar when tapping outside on mobile
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth > 768) return;
+        if (sidebar.classList.contains('collapsed')) return;
+        if (sidebar.contains(e.target) || sidebarCollapseBtn.contains(e.target)) return;
+        setSidebarCollapsed(true, true);
+    });
+
     // Theme toggle
     themeToggle.addEventListener('click', toggleTheme);
 }
@@ -77,8 +85,9 @@ function setupEventListeners() {
 // ============================================
 
 function initSidebarResize() {
+    const isMobile = window.innerWidth <= 768;
     const savedWidth = localStorage.getItem('sidebarWidth');
-    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    const isCollapsed = isMobile || localStorage.getItem('sidebarCollapsed') === 'true';
 
     if (savedWidth && !isCollapsed) {
         document.documentElement.style.setProperty('--sidebar-width', savedWidth + 'px');
@@ -435,7 +444,7 @@ async function performSearch(query) {
             currentSources = data.sources;
 
             sourcesGrid.innerHTML = data.sources.map(source => `
-                <a href="${source.url}" target="_blank" class="source-card">
+                <a href="${source.url}" target="_blank" rel="noopener noreferrer" class="source-card">
                     <span class="source-card-number">${source.number}</span>
                     <span class="source-card-title">${escapeHtml(source.title)}</span>
                     <div class="source-card-url">${new URL(source.url).hostname}</div>
@@ -536,7 +545,7 @@ function renderMessages(messages) {
                         <div class="sources-header">Sources</div>
                         <div class="sources-grid">
                             ${sources.map(source => `
-                                <a href="${source.url}" target="_blank" class="source-card">
+                                <a href="${source.url}" target="_blank" rel="noopener noreferrer" class="source-card">
                                     <span class="source-card-number">${source.number}</span>
                                     <span class="source-card-title">${escapeHtml(source.title)}</span>
                                     <div class="source-card-url">${new URL(source.url).hostname}</div>

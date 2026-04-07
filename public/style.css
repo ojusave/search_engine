@@ -1013,21 +1013,75 @@ h1, h2, h3, h4, h5, h6 {
    ============================================ */
 
 @media (max-width: 768px) {
+    /* Sidebar: overlay on mobile instead of pushing content */
+    .sidebar {
+        position: fixed;
+        z-index: 300;
+        width: 280px !important;
+        box-shadow: var(--shadow-lg);
+    }
+
     .sidebar.collapsed {
         transform: translateX(-100%);
         width: 280px !important;
+        box-shadow: none;
     }
 
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
+    }
+
+    /* Toggle button always at left edge on mobile */
+    .sidebar-toggle-btn {
+        left: 8px !important;
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Tap-friendly touch targets (min 44px) */
+    .new-chat-btn,
+    .search-btn,
+    .followup-btn,
+    .theme-btn {
+        min-height: 44px;
+    }
+
+    .conversation-item {
+        padding: 10px 12px;
+        min-height: 44px;
+    }
+
+    .example-chip {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
+
+    /* Header badges wrap on small screens */
+    .app-header {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 12px;
+    }
+
+    .powered-badge {
+        font-size: 0.65rem;
+    }
+
+    .badge-new {
+        font-size: 0.5rem;
+    }
+
+    /* Welcome screen */
+    .welcome-screen {
+        padding: 16px;
     }
 
     .welcome-content h1 {
         font-size: 1.5rem;
     }
 
-    .chat-thread {
-        padding: 0 16px;
+    .welcome-subtitle {
+        font-size: 0.9rem;
     }
 
     .search-container {
@@ -1042,6 +1096,15 @@ h1, h2, h3, h4, h5, h6 {
         width: 100%;
     }
 
+    /* Chat thread */
+    .chat-thread {
+        padding: 0 12px;
+    }
+
+    .query-text {
+        font-size: 0.95rem;
+    }
+
     .sources-grid {
         grid-template-columns: 1fr;
     }
@@ -1049,6 +1112,70 @@ h1, h2, h3, h4, h5, h6 {
     .message-answer,
     .message-sources {
         padding-left: 0;
+    }
+
+    /* Footer stacks vertically on mobile */
+    .footer-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .footer-github {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .footer-promo {
+        text-align: center;
+        font-size: 0.65rem;
+    }
+
+    /* Theme toggle out of the way of sidebar toggle */
+    .theme-toggle {
+        top: 12px;
+        right: 12px;
+    }
+
+    .theme-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    /* Follow-up input */
+    #followupInput {
+        font-size: 1rem;
+    }
+
+    .followup-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .followup-hint {
+        font-size: 0.7rem;
+    }
+}
+
+/* Small phones */
+@media (max-width: 380px) {
+    .app-header {
+        padding: 6px 8px;
+    }
+
+    .powered-divider {
+        display: none;
+    }
+
+    .powered-badge {
+        font-size: 0.6rem;
+    }
+
+    .welcome-content h1 {
+        font-size: 1.25rem;
+    }
+
+    .example-chips {
+        flex-direction: column;
     }
 }
 
