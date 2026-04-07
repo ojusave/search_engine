@@ -297,7 +297,17 @@ h1, h2, h3, h4, h5, h6 {
     border-top: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+}
+
+.deploy-btn {
+    display: inline-flex;
+    align-self: flex-start;
+}
+
+.deploy-btn img {
+    height: 32px;
+    width: auto;
 }
 
 .sidebar-footer-links {
