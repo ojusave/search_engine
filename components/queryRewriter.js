@@ -65,7 +65,7 @@ Rewrite this as a standalone search query:`;
         'Authorization': `Bearer ${config.groq.apiKey}`
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant', // Use faster model for query rewriting
+        model: config.groq.rewriteModel,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
