@@ -7,7 +7,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-
 Verdict = Literal["supported", "contradicted", "insufficient_evidence"]
 Stance = Literal["supports", "contradicts"]
 

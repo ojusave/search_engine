@@ -5,7 +5,6 @@ from __future__ import annotations
 import ipaddress
 from urllib.parse import urlsplit, urlunsplit
 
-
 BLOCKED_SUFFIXES = (".localhost", ".local", ".internal", ".test", ".invalid", ".onion")
 
 

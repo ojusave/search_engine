@@ -27,7 +27,7 @@ The example intentionally mixes factual statements; the application must investi
 **Requirements:** Python 3.11+, a [Nimble API key](https://online.nimbleway.com/), and an [OpenAI API key](https://platform.openai.com/api-keys).
 
 ```bash
-git clone https://github.com/ojusave/search_engine.git
+git clone --branch proof-agent-takehome https://github.com/ojusave/search_engine.git
 cd search_engine/proof-agent
 python -m venv .venv
 source .venv/bin/activate                 # Windows: .venv\Scripts\activate

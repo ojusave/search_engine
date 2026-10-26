@@ -20,6 +20,8 @@ jobs:
         run: pip install -e './proof-agent[dev]'
       - name: Lint
         run: ruff check proof-agent
+      - name: Verify agent imports
+        run: python -c "from proof_agent.agent import make_agent; from proof_agent.runner import investigate; print('Agent imports OK')"
       - name: Test
         run: pytest -q proof-agent/tests
       - name: Compile
