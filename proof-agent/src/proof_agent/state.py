@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, Protocol
+from typing import Callable, Literal, Protocol
 
 from proof_agent.models import Step
 from proof_agent.nimble import NimbleError, SearchHit
@@ -28,7 +28,7 @@ class ResearchState:
     search_count: int = 0
     read_count: int = 0
 
-    def emit(self, kind: Step.kind, label: str, detail: str = "") -> None:
+    def emit(self, kind: Literal["search", "read", "note"], label: str, detail: str = "") -> None:
         step = Step(kind=kind, label=label, detail=detail)
         self.steps.append(step)
         if self.on_step:

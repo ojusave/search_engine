@@ -117,7 +117,7 @@ proof-agent/
 │   ├── urls.py                Reject suspicious extraction URLs
 │   └── verify.py              Deterministic source/quotation validation
 ├── tests/                     Mock-HTTP and pure-unit tests; no paid calls
-├── .github/workflows/         CI: lint + pytest + compilation
+├── .github/workflows/         Standalone-repository CI template
 ├── .env.example               Configuration template (no credentials)
 └── pyproject.toml             Dependencies, command, lint/test settings
 ```

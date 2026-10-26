@@ -7,7 +7,14 @@ TEXT = "Python 3.13 was released in October 2024. The GIL is still enabled by de
 
 def make_report(verdict, evidence):
     return Report(
-        findings=[Finding(claim="Test claim", verdict=verdict, explanation="Model explanation", evidence=evidence)]
+        findings=[
+            Finding(
+                claim="Test claim",
+                verdict=verdict,
+                explanation="Model explanation",
+                evidence=evidence,
+            )
+        ]
     )
 
 
@@ -23,7 +30,13 @@ def test_valid_evidence_preserved_and_whitespace_normalized():
 def test_hallucinated_quote_is_removed_and_verdict_downgraded():
     report = make_report(
         "supported",
-        [Evidence(url=URL, quote="A made up assertion that's not in the webpage", stance="supports")],
+        [
+            Evidence(
+                url=URL,
+                quote="A made up assertion that's not in the webpage",
+                stance="supports",
+            )
+        ],
     )
     result = verify_report(report, {URL: TEXT})
     assert result.rejected == 1

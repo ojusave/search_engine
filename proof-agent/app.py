@@ -109,4 +109,7 @@ if result:
                 st.caption(step.detail)
     if result.unverified_quotes:
         st.warning(f"{result.unverified_quotes} unverified quote(s) excluded from the report.")
-    st.caption("Research aid, not a guarantee of truth. Check important claims against original sources.")
+    st.caption(
+        "Research aid, not a guarantee of truth. "
+        "Check important claims against original sources."
+    )

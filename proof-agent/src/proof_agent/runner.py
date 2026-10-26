@@ -44,7 +44,9 @@ def investigate(
             ),
         )
         verified = verify_report(result.output, state.pages)
-        state.emit("note", "Checked source excerpts", f"{verified.rejected} invalid citation(s) excluded")
+        state.emit(
+            "note", "Checked source excerpts", f"{verified.rejected} invalid citation(s) excluded"
+        )
         return InvestigationResult(
             report=verified.report,
             steps=state.steps.copy(),

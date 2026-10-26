@@ -51,7 +51,9 @@ class NimbleClient:
         except httpx.TimeoutException as exc:
             raise NimbleError(f"Nimble {endpoint} timed out.") from exc
         except httpx.HTTPStatusError as exc:
-            raise NimbleError(f"Nimble {endpoint} returned HTTP {exc.response.status_code}.") from exc
+            raise NimbleError(
+                f"Nimble {endpoint} returned HTTP {exc.response.status_code}."
+            ) from exc
         except (httpx.RequestError, ValueError) as exc:
             raise NimbleError(f"Nimble {endpoint} could not return usable data.") from exc
         if not isinstance(data, dict):

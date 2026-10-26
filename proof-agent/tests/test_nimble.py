@@ -16,14 +16,20 @@ def test_search_and_extract_use_correct_v2_endpoints():
                 200,
                 json={
                     "results": [
-                        {"url": "https://docs.python.org/3.13/", "title": "Python", "description": "Docs"},
+                        {
+                            "url": "https://docs.python.org/3.13/",
+                            "title": "Python",
+                            "description": "Docs",
+                        },
                         {"url": "http://127.0.0.1/", "title": "Unsafe"},
                     ]
                 },
             )
         assert request.url.path.endswith("/extract")
         assert '"formats":["markdown"]' in request.content.decode()
-        return httpx.Response(200, json={"status": "success", "data": {"markdown": "# Python docs"}})
+        return httpx.Response(
+            200, json={"status": "success", "data": {"markdown": "# Python docs"}}
+        )
 
     http_client = httpx.Client(transport=httpx.MockTransport(handler))
     api = NimbleClient("fake-key", http_client=http_client)

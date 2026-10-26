@@ -27,7 +27,7 @@ def public_url(value: str) -> str | None:
         if "." not in host:
             return None
         try:
-            addr = ipaddress.ip_address(host)
+            ipaddress.ip_address(host)
         except ValueError:
             # Reject integer-like, malformed and encoded-IP-style hostnames.
             if any(c in host for c in ("%", "\\", " ")):
@@ -35,6 +35,8 @@ def public_url(value: str) -> str | None:
         else:
             # Do not extract literal IP addresses, even public ones.
             return None
-        return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path or "/", parts.query, ""))
+        return urlunsplit(
+            (parts.scheme.lower(), parts.netloc.lower(), parts.path or "/", parts.query, "")
+        )
     except (ValueError, AttributeError):
         return None

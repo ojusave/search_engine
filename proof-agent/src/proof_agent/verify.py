@@ -31,7 +31,11 @@ def verify_report(report: Report, pages: dict[str, str]) -> Verified:
         for item in finding.evidence:
             url = public_url(item.url)
             page = pages.get(url or "", "")
-            if url and len(normalize(item.quote)) >= 15 and normalize(item.quote) in normalize(page):
+            if (
+                url
+                and len(normalize(item.quote)) >= 15
+                and normalize(item.quote) in normalize(page)
+            ):
                 valid.append(Evidence(url=url, quote=item.quote.strip(), stance=item.stance))
             else:
                 rejected += 1
